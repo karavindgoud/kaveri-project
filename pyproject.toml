@@ -1,0 +1,16 @@
+[tool.pyright]
+venvPath = "."
+venv = "venv"
+extraPaths = [
+    "backend",
+    "backend/apps",
+    "backend/api"
+]
+
+[tool.pyrefly]
+venv = "venv"
+extraPaths = [
+    "backend",
+    "backend/apps",
+    "backend/api"
+]
