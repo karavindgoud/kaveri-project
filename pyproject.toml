@@ -1,13 +1,10 @@
+[tool.pyrefly]
+search-paths = ["backend", "backend/apps", "backend/api", "."]
+extra-paths = ["backend", "backend/apps", "backend/api", "."]
+extraPaths = ["backend", "backend/apps", "backend/api", "."]
+
 [tool.pyright]
 venvPath = "."
-venv = "venv"
-extraPaths = [
-    "backend",
-    "backend/apps",
-    "backend/api"
-]
-
-[tool.pyrefly]
 venv = "venv"
 extraPaths = [
     "backend",
