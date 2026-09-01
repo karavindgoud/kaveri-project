@@ -3,7 +3,6 @@ from django.db import models
 
 class Rate(models.Model):
     objects = models.Manager()
-    DoesNotExist: Any = models.ObjectDoesNotExist
 
     rate_id = models.AutoField(primary_key=True)
     property_id: int

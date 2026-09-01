@@ -4,7 +4,6 @@ from django.core.validators import MinValueValidator
 
 class RoomType(models.Model):
     objects = models.Manager()
-    DoesNotExist: Any = models.ObjectDoesNotExist
 
     room_type_id = models.AutoField(primary_key=True)
     type_name = models.CharField(unique=True, max_length=20, help_text="Category name (e.g. Deluxe, Suite)")

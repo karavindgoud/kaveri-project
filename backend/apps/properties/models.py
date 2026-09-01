@@ -4,7 +4,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Property(models.Model):
     objects = models.Manager()
-    DoesNotExist: Any = models.ObjectDoesNotExist
     rooms: Any
 
     property_id = models.AutoField(primary_key=True)

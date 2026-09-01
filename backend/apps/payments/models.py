@@ -3,7 +3,6 @@ from django.db import models
 
 class Payment(models.Model):
     objects = models.Manager()
-    DoesNotExist: Any = models.ObjectDoesNotExist
 
     METHOD_CHOICES = (
         ('credit_card', 'Credit Card'),

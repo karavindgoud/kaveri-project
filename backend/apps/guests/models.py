@@ -3,7 +3,6 @@ from django.db import models
 
 class Guest(models.Model):
     objects = models.Manager()
-    DoesNotExist: Any = models.ObjectDoesNotExist
     bookings: Any
 
     guest_id = models.AutoField(primary_key=True)

@@ -3,7 +3,6 @@ from django.db import models
 
 class LegacyReservations(models.Model):
     objects = models.Manager()
-    DoesNotExist: Any = models.ObjectDoesNotExist
 
     row_id = models.TextField(primary_key=True)
     guest_name = models.TextField(blank=True, null=True)

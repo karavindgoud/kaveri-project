@@ -4,7 +4,6 @@ from django.core.validators import MinValueValidator
 
 class Booking(models.Model):
     objects = models.Manager()
-    DoesNotExist: Any = models.ObjectDoesNotExist
 
     STATUS_CHOICES = (
         ('confirmed', 'Confirmed'),
