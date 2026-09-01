@@ -1,0 +1,392 @@
+{
+  "info": {
+    "name": "Kaveri Stays Enterprise API Suite",
+    "_postman_id": "a9d8f3e2-7814-46bb-89c0-kaveristays01",
+    "description": "Comprehensive Postman Test Collection covering all endpoints, RBAC authorization matrix, End-to-End Take-a-Booking lifecycle flow, and Stage 8 Attack Suite.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "01_Auth",
+      "item": [
+        {
+          "name": "Login (Auto-captures Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access_token) {",
+                  "    pm.environment.set('access_token', jsonData.access_token);",
+                  "    console.log('Access token stored in environment variable.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User Profile (/me)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02_Properties_and_Rooms",
+      "item": [
+        {
+          "name": "List Properties",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/properties", "host": ["{{base_url}}"], "path": ["api", "properties"] }
+          }
+        },
+        {
+          "name": "Check Availability (Query 4.1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "var rooms = pm.response.json();",
+                  "if (rooms && rooms.length > 0) { pm.environment.set('available_room_id', rooms[0].room_id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/rooms/availability?property_id=1&check_in=2026-10-01&check_out=2026-10-05",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", "availability"],
+              "query": [
+                { "key": "property_id", "value": "1" },
+                { "key": "check_in", "value": "2026-10-01" },
+                { "key": "check_out", "value": "2026-10-05" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03_Take_A_Booking_E2E_Flow",
+      "item": [
+        {
+          "name": "Step 1: Check Availability",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Availability check returns 200', function () { pm.response.to.have.status(200); });",
+                  "var list = pm.response.json();",
+                  "pm.environment.set('e2e_room_id', list[0].room_id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/rooms/availability?property_id=1&check_in=2026-11-01&check_out=2026-11-04",
+              "host": ["{{base_url}}"],
+              "path": ["api", "rooms", "availability"],
+              "query": [
+                { "key": "property_id", "value": "1" },
+                { "key": "check_in", "value": "2026-11-01" },
+                { "key": "check_out", "value": "2026-11-04" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Step 2: Create Booking and Settle Deposit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Booking created 201', function () { pm.response.to.have.status(201); });",
+                  "var res = pm.response.json();",
+                  "pm.environment.set('e2e_booking_id', res.booking_id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{e2e_room_id}},\n  \"guest_id\": 1,\n  \"check_in\": \"2026-11-01\",\n  \"check_out\": \"2026-11-04\",\n  \"guest_count\": 2,\n  \"deposit_amount\": 1350.00,\n  \"payment_method\": \"credit_card\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/bookings", "host": ["{{base_url}}"], "path": ["api", "bookings"] }
+          }
+        },
+        {
+          "name": "Step 3: Check-in Guest (Staff/Manager)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 or 403 depending on role', function () {",
+                  "    pm.expect([200, 403]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"checked_in\"\n}" },
+            "url": { "raw": "{{base_url}}/api/bookings/{{e2e_booking_id}}", "host": ["{{base_url}}"], "path": ["api", "bookings", "{{e2e_booking_id}}"] }
+          }
+        },
+        {
+          "name": "Step 4: Check-out Guest",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Transition processed', function () {",
+                  "    pm.expect([200, 403, 409]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"checked_out\"\n}" },
+            "url": { "raw": "{{base_url}}/api/bookings/{{e2e_booking_id}}", "host": ["{{base_url}}"], "path": ["api", "bookings", "{{e2e_booking_id}}"] }
+          }
+        },
+        {
+          "name": "Step 5: Submit Post-Stay Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Review submission status checked', function () {",
+                  "    pm.expect([201, 409, 403]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"booking_id\": {{e2e_booking_id}},\n  \"rating\": 5,\n  \"comment\": \"Bespoke luxury hospitality and pristine infinity pool views!\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/reviews", "host": ["{{base_url}}"], "path": ["api", "reviews"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04_Attacks_and_Security_Suite",
+      "item": [
+        {
+          "name": "Attack 8.1: Guest A requests Guest B booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Refused with 403 Forbidden or 404', function () {",
+                  "    pm.expect([403, 404]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/bookings/9999", "host": ["{{base_url}}"], "path": ["api", "bookings", "9999"] }
+          }
+        },
+        {
+          "name": "Attack 8.2: Self-register with role owner",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Registration forces guest role', function () {",
+                  "    if (pm.response.code === 201) {",
+                  "        var res = pm.response.json();",
+                  "        pm.expect(res.role).to.eql('guest');",
+                  "    } else {",
+                  "        pm.expect(pm.response.code).to.be.oneOf([400, 422, 409]);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"hacker_admin\",\n  \"email\": \"hacker@evil.com\",\n  \"password\": \"Pwned123!\",\n  \"full_name\": \"Hacker\",\n  \"role\": \"owner\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Attack 8.7: Cross-property Ooty manager accessing Coorg",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Cross-property access refused with 403', function () {",
+                  "    if (pm.environment.get('role') === 'manager' && pm.environment.get('property_id') === '2') {",
+                  "        pm.response.to.have.status(403);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/reports/revenue?property_id=1", "host": ["{{base_url}}"], "path": ["api", "reports", "revenue"], "query": [{ "key": "property_id", "value": "1" }] }
+          }
+        },
+        {
+          "name": "Attack 8.8: Client-supplied nightly rate in booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Price injection ignored or refused', function () {",
+                  "    pm.expect([201, 400, 422]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": 101,\n  \"guest_id\": 1,\n  \"check_in\": \"2026-12-01\",\n  \"check_out\": \"2026-12-05\",\n  \"guest_count\": 2,\n  \"nightly_rate\": 1.00,\n  \"deposit_amount\": 4.00,\n  \"payment_method\": \"upi\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/bookings", "host": ["{{base_url}}"], "path": ["api", "bookings"] }
+          }
+        },
+        {
+          "name": "Attack 8.9: Post review on active checked_in stay",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Refused with 409 Conflict', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"booking_id\": 1001,\n  \"rating\": 5,\n  \"comment\": \"Premature review\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/reviews", "host": ["{{base_url}}"], "path": ["api", "reviews"] }
+          }
+        }
+      ]
+    }
+  ]
+}

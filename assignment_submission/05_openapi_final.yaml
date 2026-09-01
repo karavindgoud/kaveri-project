@@ -1,0 +1,560 @@
+openapi: 3.0.3
+info:
+  title: Kaveri Stays Management & Reservation Engine API - Final Spec
+  version: 1.1.0
+  description: >
+    Reconciled Final HTTP API Specification for Kaveri Stays. Fully compliant with
+    all relational exclusion constraints, JWT RBAC authorization, and automated pytest suites.
+servers:
+  - url: http://127.0.0.1:8000
+    description: Production & Test Server
+
+components:
+  securitySchemes:
+    OAuth2PasswordBearer:
+      type: oauth2
+      flows:
+        password:
+          tokenUrl: /api/auth/login
+          scopes: {}
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - status
+          properties:
+            code:
+              type: string
+              example: ROOM_UNAVAILABLE
+            message:
+              type: string
+              example: The requested room is unavailable for the selected dates.
+            status:
+              type: integer
+              example: 409
+
+    LoginPayload:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    RegisterPayload:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - full_name
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        full_name:
+          type: string
+
+    TokenResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - role
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: bearer
+        role:
+          type: string
+        property_id:
+          type: integer
+          nullable: true
+
+    UserMeDTO:
+      type: object
+      properties:
+        account_id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        property_id:
+          type: integer
+          nullable: true
+
+    PropertyDTO:
+      type: object
+      properties:
+        property_id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: string
+        total_rooms:
+          type: integer
+
+    RoomDTO:
+      type: object
+      properties:
+        room_id:
+          type: integer
+        room_number:
+          type: string
+        property_id:
+          type: integer
+        property_name:
+          type: string
+        room_type_name:
+          type: string
+        max_occupancy:
+          type: integer
+        rate:
+          type: number
+          format: float
+
+    BookingCreatePayload:
+      type: object
+      required:
+        - room_id
+        - guest_id
+        - check_in
+        - check_out
+        - guest_count
+        - deposit_amount
+        - payment_method
+      properties:
+        room_id:
+          type: integer
+        guest_id:
+          type: integer
+        check_in:
+          type: string
+          format: date
+        check_out:
+          type: string
+          format: date
+        guest_count:
+          type: integer
+        deposit_amount:
+          type: number
+          format: float
+        payment_method:
+          type: string
+          enum: [credit_card, debit_card, upi, bank_transfer]
+
+    BookingStatusUpdatePayload:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [confirmed, checked_in, checked_out, cancelled, no_show]
+
+    BookingDTO:
+      type: object
+      properties:
+        booking_id:
+          type: integer
+        guest_id:
+          type: integer
+        guest_name:
+          type: string
+        room_id:
+          type: integer
+        room_number:
+          type: string
+        property_name:
+          type: string
+        check_in:
+          type: string
+          format: date
+        check_out:
+          type: string
+          format: date
+        nights_count:
+          type: integer
+        guest_count:
+          type: integer
+        status:
+          type: string
+        total_paid:
+          type: number
+          format: float
+
+    PaymentCreatePayload:
+      type: object
+      required:
+        - amount
+        - method
+      properties:
+        amount:
+          type: number
+          format: float
+        method:
+          type: string
+          enum: [credit_card, debit_card, upi, bank_transfer]
+
+    PaymentDTO:
+      type: object
+      properties:
+        payment_id:
+          type: integer
+        booking_id:
+          type: integer
+        amount:
+          type: number
+          format: float
+        method:
+          type: string
+        payment_date:
+          type: string
+          format: date
+
+    ReviewCreatePayload:
+      type: object
+      required:
+        - rating
+        - comment
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+
+    ReviewDTO:
+      type: object
+      properties:
+        review_id:
+          type: integer
+        booking_id:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+        review_date:
+          type: string
+          format: date
+
+    DashboardDTO:
+      type: object
+      properties:
+        total_revenue:
+          type: number
+        total_rooms:
+          type: integer
+        occupied_rooms:
+          type: integer
+        available_rooms:
+          type: integer
+        occupancy_rate:
+          type: number
+        total_bookings:
+          type: integer
+        active_bookings:
+          type: integer
+        today_checkins:
+          type: integer
+        today_checkouts:
+          type: integer
+        adr:
+          type: number
+        revpar:
+          type: number
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register Guest Account
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterPayload'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/auth/login:
+    post:
+      summary: Login User
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginPayload'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/auth/me:
+    get:
+      summary: Get Current User
+      tags: [Auth]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMeDTO'
+
+  /api/properties:
+    get:
+      summary: List Resort Properties
+      tags: [Properties]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PropertyDTO'
+
+  /api/rooms/availability:
+    get:
+      summary: Check Room Inventory Availability (Query 4.1)
+      tags: [Rooms]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: property_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: check_in
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: check_out
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomDTO'
+        '422':
+          $ref: '#/components/responses/ErrorResponse'
+
+  /api/bookings:
+    get:
+      summary: List Bookings
+      tags: [Bookings]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookingDTO'
+    post:
+      summary: Create Booking and Deposit
+      tags: [Bookings]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingCreatePayload'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDTO'
+        '409':
+          description: Room exclusion overlap
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: Guest count exceeds room limit
+
+  /api/bookings/{id}:
+    get:
+      summary: Get Single Booking
+      tags: [Bookings]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDTO'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+    patch:
+      summary: Update Booking Lifecycle Status
+      tags: [Bookings]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingStatusUpdatePayload'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDTO'
+        '409':
+          description: Invalid state transition
+
+  /api/bookings/{id}/payments:
+    post:
+      summary: Record Payment Installment on Booking
+      tags: [Payments]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreatePayload'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDTO'
+
+  /api/bookings/{id}/review:
+    post:
+      summary: Submit Post-Stay Review
+      tags: [Reviews]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreatePayload'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewDTO'
+        '409':
+          description: Review already submitted or stay not checked out
+
+  /api/reports/dashboard:
+    get:
+      summary: Get Executive KPI Dashboard
+      tags: [Reports]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardDTO'
+
+responses:
+  ErrorResponse:
+    description: Standard error envelope
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/ErrorEnvelope'

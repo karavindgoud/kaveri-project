@@ -1,0 +1,670 @@
+openapi: 3.0.3
+info:
+  title: Kaveri Stays Management & Reservation Engine API
+  version: 1.0.0
+  description: >
+    Enterprise HTTP API for Kaveri Stays luxury resort portfolio (Coorg, Ooty, Alleppey).
+    Enforces strict relational constraints, role-based property scoping, atomic booking transactions,
+    and sanitized domain conflict handling.
+servers:
+  - url: http://127.0.0.1:8000
+    description: Local Development Engine
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Enter JWT Bearer Access Token
+
+  schemas:
+    ErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+
+    ErrorEnvelope:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - status
+          properties:
+            code:
+              type: string
+              example: ROOM_UNAVAILABLE
+            message:
+              type: string
+              example: The requested room is unavailable for the specified stay dates.
+            status:
+              type: integer
+              example: 409
+            details:
+              type: array
+              items:
+                $ref: '#/components/schemas/ErrorDetail'
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          example: admin123
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - full_name
+      properties:
+        username:
+          type: string
+          example: lady_eleanor
+        email:
+          type: string
+          format: email
+          example: eleanor@vance.co.uk
+        password:
+          type: string
+          example: SecretPass123!
+        full_name:
+          type: string
+          example: Lady Eleanor Vance
+
+    AuthTokenResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - role
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: bearer
+        role:
+          type: string
+          enum: [guest, staff, manager, owner]
+        property_id:
+          type: integer
+          nullable: true
+
+    UserMeResponse:
+      type: object
+      properties:
+        account_id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        property_id:
+          type: integer
+          nullable: true
+
+    PropertyResponse:
+      type: object
+      properties:
+        property_id:
+          type: integer
+        name:
+          type: string
+        city:
+          type: string
+        total_rooms:
+          type: integer
+
+    RoomResponse:
+      type: object
+      properties:
+        room_id:
+          type: integer
+        room_number:
+          type: string
+        property_id:
+          type: integer
+        property_name:
+          type: string
+        room_type_name:
+          type: string
+        max_occupancy:
+          type: integer
+        rate:
+          type: number
+          format: float
+
+    AvailabilityResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+        room_id:
+          type: integer
+        check_in:
+          type: string
+          format: date
+        check_out:
+          type: string
+          format: date
+        available_rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoomResponse'
+
+    BookingCreateRequest:
+      type: object
+      required:
+        - room_id
+        - guest_id
+        - check_in
+        - check_out
+        - guest_count
+        - deposit_amount
+        - payment_method
+      properties:
+        room_id:
+          type: integer
+        guest_id:
+          type: integer
+        check_in:
+          type: string
+          format: date
+          example: '2026-09-10'
+        check_out:
+          type: string
+          format: date
+          example: '2026-09-14'
+        guest_count:
+          type: integer
+          minimum: 1
+          example: 2
+        deposit_amount:
+          type: number
+          format: float
+          minimum: 0.01
+          example: 1200.00
+        payment_method:
+          type: string
+          enum: [credit_card, debit_card, upi, bank_transfer]
+
+    BookingStatusUpdateRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [confirmed, checked_in, checked_out, cancelled, no_show]
+
+    BookingResponse:
+      type: object
+      properties:
+        booking_id:
+          type: integer
+        guest_id:
+          type: integer
+        guest_name:
+          type: string
+        room_id:
+          type: integer
+        room_number:
+          type: string
+        property_name:
+          type: string
+        check_in:
+          type: string
+          format: date
+        check_out:
+          type: string
+          format: date
+        nights_count:
+          type: integer
+        guest_count:
+          type: integer
+        status:
+          type: string
+        total_paid:
+          type: number
+          format: float
+
+    PaymentCreateRequest:
+      type: object
+      required:
+        - booking_id
+        - amount
+        - method
+      properties:
+        booking_id:
+          type: integer
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+        method:
+          type: string
+          enum: [credit_card, debit_card, upi, bank_transfer]
+
+    PaymentResponse:
+      type: object
+      properties:
+        payment_id:
+          type: integer
+        booking_id:
+          type: integer
+        guest_name:
+          type: string
+        amount:
+          type: number
+          format: float
+        method:
+          type: string
+        payment_date:
+          type: string
+          format: date
+
+    ReviewCreateRequest:
+      type: object
+      required:
+        - booking_id
+        - rating
+        - comment
+      properties:
+        booking_id:
+          type: integer
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+
+    ReviewResponse:
+      type: object
+      properties:
+        review_id:
+          type: integer
+        booking_id:
+          type: integer
+        guest_name:
+          type: string
+        property_name:
+          type: string
+        rating:
+          type: integer
+        comment:
+          type: string
+        review_date:
+          type: string
+          format: date
+
+    DashboardSummaryResponse:
+      type: object
+      properties:
+        total_revenue:
+          type: number
+        total_rooms:
+          type: integer
+        occupied_rooms:
+          type: integer
+        available_rooms:
+          type: integer
+        occupancy_rate:
+          type: number
+        total_bookings:
+          type: integer
+        active_bookings:
+          type: integer
+        today_checkins:
+          type: integer
+        today_checkouts:
+          type: integer
+        adr:
+          type: number
+        revpar:
+          type: number
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register Guest Account
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Guest registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '409':
+          description: Username or Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /api/auth/login:
+    post:
+      summary: Authenticate User & Issue JWT
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /api/auth/me:
+    get:
+      summary: Get Current User Profile
+      tags: [Authentication]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/properties:
+    get:
+      summary: List Resort Properties
+      tags: [Properties]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PropertyResponse'
+
+  /api/rooms/availability:
+    get:
+      summary: Check Room Inventory Availability (Query 4.1 over HTTP)
+      tags: [Rooms & Availability]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: property_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: check_in
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: check_out
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: room_type_id
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomResponse'
+        '422':
+          description: Invalid date range (check_out <= check_in)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /api/bookings:
+    get:
+      summary: List & Filter Bookings
+      tags: [Bookings]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: property_id
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookingResponse'
+    post:
+      summary: Create Reservation Transaction (Rule 5.22 Atomic Booking + Deposit)
+      tags: [Bookings]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingCreateRequest'
+      responses:
+        '201':
+          description: Booking created and deposit settled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '409':
+          description: Exclusion constraint conflict (Room overlapping)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '422':
+          description: Guest count exceeds room type max capacity
+
+  /api/bookings/{id}:
+    get:
+      summary: Get Single Booking Details
+      tags: [Bookings]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '403':
+          description: Forbidden (Guest accessing another guest's booking)
+        '404':
+          description: Booking not found
+    patch:
+      summary: Update Booking Lifecycle State
+      tags: [Bookings]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingStatusUpdateRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResponse'
+        '409':
+          description: Illegal state transition (e.g. confirmed -> checked_out)
+
+  /api/payments:
+    get:
+      summary: List Payments
+      tags: [Payments]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentResponse'
+    post:
+      summary: Record Payment Installment
+      tags: [Payments]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreateRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '409':
+          description: Payment exceeds booking total or duplicate transaction
+
+  /api/reviews:
+    get:
+      summary: List Accolades & Reviews
+      tags: [Reviews]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewResponse'
+    post:
+      summary: Submit Post-Stay Review
+      tags: [Reviews]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResponse'
+        '409':
+          description: Review already submitted or stay not checked out
+
+  /api/reports/dashboard:
+    get:
+      summary: Executive Dashboard KPI Summary
+      tags: [Reports & Analytics]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummaryResponse'
+
+responses:
+  Unauthorized:
+    description: Authentication token is missing, expired, or invalid
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/ErrorEnvelope'
