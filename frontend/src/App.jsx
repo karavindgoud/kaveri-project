@@ -11,6 +11,7 @@ import { Bookings } from './pages/Bookings';
 import { Payments } from './pages/Payments';
 import { Reviews } from './pages/Reviews';
 import { Reports } from './pages/Reports';
+import { ColorCursor } from './components/ColorCursor';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
@@ -28,6 +29,7 @@ const STAFF_ROLES = ['Admin', 'Manager', 'Receptionist'];
 export const App = () => {
   return (
     <AuthProvider>
+      <ColorCursor />
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
