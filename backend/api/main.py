@@ -11,9 +11,11 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 import django
 django.setup()
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import auth, properties, rooms, guests, bookings, payments, reviews, rate_plans, reports
+from api.dependencies.db_migration import import_legacy_data_if_needed
 
 app = FastAPI(
     title="Kaveri Stays - Enterprise Hotel Management API",
@@ -23,14 +25,28 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Enable CORS for React frontend (Vite)
+# Robust CORS Configuration: dynamically accepts any http/https origin with credentials
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+# Global Exception Handler to ensure CORS headers are maintained even on unexpected internal errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    origin = request.headers.get("origin", "*")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "type": type(exc).__name__},
+        headers={
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
 
 # Include all API routers
 app.include_router(auth.router)
@@ -45,11 +61,10 @@ app.include_router(reports.router)
 
 @app.on_event("startup")
 def startup_populate():
-    import threading
-    from api.dependencies.db_migration import import_legacy_data_if_needed
-    thread = threading.Thread(target=import_legacy_data_if_needed)
-    thread.start()
-    thread.join()
+    try:
+        import_legacy_data_if_needed()
+    except Exception as e:
+        print(f"WARNING: Startup migration encountered error: {e}")
 
 @app.get("/", tags=["Health Check"])
 def root_health_check():
