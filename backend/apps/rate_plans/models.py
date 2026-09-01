@@ -1,14 +1,20 @@
+from typing import Any
 from django.db import models
 
 class Rate(models.Model):
+    objects = models.Manager()
+    DoesNotExist: Any = models.ObjectDoesNotExist
+
     rate_id = models.AutoField(primary_key=True)
-    property = models.ForeignKey(
+    property_id: int
+    property: Any = models.ForeignKey(
         'properties.Property',
         on_delete=models.DO_NOTHING,
         db_column='property_id',
         related_name='rates'
     )
-    room_type = models.ForeignKey(
+    room_type_id: int
+    room_type: Any = models.ForeignKey(
         'room_types.RoomType',
         on_delete=models.DO_NOTHING,
         db_column='room_type_id',

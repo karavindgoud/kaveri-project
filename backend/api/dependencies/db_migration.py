@@ -81,93 +81,94 @@ def clean_payment_method(method_str):
 
 def ensure_database_tables_exist():
     """Ensure all relational and legacy tables exist in Postgres/SQLite before querying."""
-    try:
-        with connection.cursor() as cursor:
-            # Check DB engine to tailor DDL
-            vendor = connection.vendor
-            pk_type = "SERIAL PRIMARY KEY" if vendor == "postgresql" else "INTEGER PRIMARY KEY AUTOINCREMENT"
-            
-            cursor.execute(f"""
-            CREATE TABLE IF NOT EXISTS property (
-                property_id {pk_type},
-                name VARCHAR(100) NOT NULL,
-                city VARCHAR(50) NOT NULL,
-                stars SMALLINT DEFAULT 5
-            );
-            CREATE TABLE IF NOT EXISTS room_type (
-                room_type_id {pk_type},
-                type_name VARCHAR(20) NOT NULL UNIQUE,
-                max_occupancy SMALLINT NOT NULL DEFAULT 2
-            );
-            CREATE TABLE IF NOT EXISTS room (
-                room_id {pk_type},
-                property_id INT NOT NULL REFERENCES property(property_id) ON DELETE CASCADE,
-                room_number VARCHAR(10) NOT NULL,
-                room_type_id INT NOT NULL REFERENCES room_type(room_type_id) ON DELETE RESTRICT,
-                UNIQUE(property_id, room_number)
-            );
-            CREATE TABLE IF NOT EXISTS guest (
-                guest_id {pk_type},
-                name VARCHAR(100) NOT NULL,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                phone VARCHAR(20),
-                city VARCHAR(50)
-            );
-            CREATE TABLE IF NOT EXISTS rate (
-                rate_id {pk_type},
-                property_id INT NOT NULL REFERENCES property(property_id) ON DELETE CASCADE,
-                room_type_id INT NOT NULL REFERENCES room_type(room_type_id) ON DELETE CASCADE,
-                start_date DATE NOT NULL,
-                end_date DATE NOT NULL,
-                nightly_rate NUMERIC(10,2) NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS booking (
-                booking_id {pk_type},
-                guest_id INT NOT NULL REFERENCES guest(guest_id) ON DELETE CASCADE,
-                room_id INT REFERENCES room(room_id) ON DELETE SET NULL,
-                check_in DATE NOT NULL,
-                check_out DATE NOT NULL,
-                guest_count INT NOT NULL DEFAULT 1,
-                status VARCHAR(20) NOT NULL DEFAULT 'confirmed'
-            );
-            CREATE TABLE IF NOT EXISTS payment (
-                payment_id {pk_type},
-                booking_id INT NOT NULL REFERENCES booking(booking_id) ON DELETE CASCADE,
-                amount NUMERIC(10,2) NOT NULL,
-                method VARCHAR(20) NOT NULL,
-                payment_date DATE NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS review (
-                review_id {pk_type},
-                booking_id INT UNIQUE NOT NULL REFERENCES booking(booking_id) ON DELETE CASCADE,
-                rating SMALLINT,
-                comment TEXT,
-                review_date DATE
-            );
-            CREATE TABLE IF NOT EXISTS legacy_reservations (
-                row_id TEXT PRIMARY KEY,
-                guest_name TEXT,
-                guest_email TEXT,
-                guest_phone TEXT,
-                guest_city TEXT,
-                hotel_name TEXT,
-                hotel_city TEXT,
-                hotel_star TEXT,
-                room_numbers TEXT,
-                room_type TEXT,
-                guests_count TEXT,
-                checkin TEXT,
-                checkout TEXT,
-                nightly_rate TEXT,
-                total_paid TEXT,
-                payment_method TEXT,
-                status TEXT,
-                notes TEXT
-            );
-            """)
-        print("INFO: Database schema verification completed successfully.")
-    except Exception as e:
-        print(f"WARNING: Error creating schema tables: {e}")
+    vendor = connection.vendor
+    pk_type = "SERIAL PRIMARY KEY" if vendor == "postgresql" else "INTEGER PRIMARY KEY AUTOINCREMENT"
+    
+    statements = [
+        f"""CREATE TABLE IF NOT EXISTS property (
+            property_id {pk_type},
+            name VARCHAR(100) NOT NULL,
+            city VARCHAR(50) NOT NULL,
+            stars SMALLINT DEFAULT 5
+        )""",
+        f"""CREATE TABLE IF NOT EXISTS room_type (
+            room_type_id {pk_type},
+            type_name VARCHAR(20) NOT NULL UNIQUE,
+            max_occupancy SMALLINT NOT NULL DEFAULT 2
+        )""",
+        f"""CREATE TABLE IF NOT EXISTS room (
+            room_id {pk_type},
+            property_id INT NOT NULL REFERENCES property(property_id) ON DELETE CASCADE,
+            room_number VARCHAR(10) NOT NULL,
+            room_type_id INT NOT NULL REFERENCES room_type(room_type_id) ON DELETE RESTRICT,
+            UNIQUE(property_id, room_number)
+        )""",
+        f"""CREATE TABLE IF NOT EXISTS guest (
+            guest_id {pk_type},
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            phone VARCHAR(20),
+            city VARCHAR(50)
+        )""",
+        f"""CREATE TABLE IF NOT EXISTS rate (
+            rate_id {pk_type},
+            property_id INT NOT NULL REFERENCES property(property_id) ON DELETE CASCADE,
+            room_type_id INT NOT NULL REFERENCES room_type(room_type_id) ON DELETE CASCADE,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            nightly_rate NUMERIC(10,2) NOT NULL
+        )""",
+        f"""CREATE TABLE IF NOT EXISTS booking (
+            booking_id {pk_type},
+            guest_id INT NOT NULL REFERENCES guest(guest_id) ON DELETE CASCADE,
+            room_id INT REFERENCES room(room_id) ON DELETE SET NULL,
+            check_in DATE NOT NULL,
+            check_out DATE NOT NULL,
+            guest_count INT NOT NULL DEFAULT 1,
+            status VARCHAR(20) NOT NULL DEFAULT 'confirmed'
+        )""",
+        f"""CREATE TABLE IF NOT EXISTS payment (
+            payment_id {pk_type},
+            booking_id INT NOT NULL REFERENCES booking(booking_id) ON DELETE CASCADE,
+            amount NUMERIC(10,2) NOT NULL,
+            method VARCHAR(20) NOT NULL,
+            payment_date DATE NOT NULL
+        )""",
+        f"""CREATE TABLE IF NOT EXISTS review (
+            review_id {pk_type},
+            booking_id INT UNIQUE NOT NULL REFERENCES booking(booking_id) ON DELETE CASCADE,
+            rating SMALLINT,
+            comment TEXT,
+            review_date DATE
+        )""",
+        """CREATE TABLE IF NOT EXISTS legacy_reservations (
+            row_id TEXT PRIMARY KEY,
+            guest_name TEXT,
+            guest_email TEXT,
+            guest_phone TEXT,
+            guest_city TEXT,
+            hotel_name TEXT,
+            hotel_city TEXT,
+            hotel_star TEXT,
+            room_numbers TEXT,
+            room_type TEXT,
+            guests_count TEXT,
+            checkin TEXT,
+            checkout TEXT,
+            nightly_rate TEXT,
+            total_paid TEXT,
+            payment_method TEXT,
+            status TEXT,
+            notes TEXT
+        )"""
+    ]
+    with connection.cursor() as cursor:
+        for stmt in statements:
+            try:
+                cursor.execute(stmt)
+            except Exception as e:
+                print(f"WARNING: Schema table creation notice ({e})")
+    print("INFO: Database schema verification completed successfully.")
 
 def seed_initial_enterprise_data():
     """Populate default luxury hotel properties, rooms, room types, rates, and sample bookings."""

@@ -1,7 +1,11 @@
+from typing import Any
 from django.db import models
 from django.core.validators import MinValueValidator
 
 class Booking(models.Model):
+    objects = models.Manager()
+    DoesNotExist: Any = models.ObjectDoesNotExist
+
     STATUS_CHOICES = (
         ('confirmed', 'Confirmed'),
         ('checked_in', 'Checked In'),
@@ -11,18 +15,22 @@ class Booking(models.Model):
     )
 
     booking_id = models.AutoField(primary_key=True)
-    guest = models.ForeignKey(
+    guest_id: int
+    guest: Any = models.ForeignKey(
         'guests.Guest',
         on_delete=models.DO_NOTHING,
         db_column='guest_id',
         related_name='bookings'
     )
-    room = models.ForeignKey(
+    room_id: int
+    room: Any = models.ForeignKey(
         'rooms.Room',
         on_delete=models.DO_NOTHING,
         db_column='room_id',
         related_name='bookings'
     )
+    payments: Any
+    review: Any
     check_in = models.DateField(help_text="Arrival date")
     check_out = models.DateField(help_text="Departure date")
     guest_count = models.IntegerField(

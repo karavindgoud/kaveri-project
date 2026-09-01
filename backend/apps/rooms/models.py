@@ -1,15 +1,21 @@
+from typing import Any
 from django.db import models
 
 class Room(models.Model):
+    objects = models.Manager()
+    DoesNotExist: Any = models.ObjectDoesNotExist
+
     room_id = models.AutoField(primary_key=True)
-    property = models.ForeignKey(
+    property_id: int
+    property: Any = models.ForeignKey(
         'properties.Property',
         on_delete=models.DO_NOTHING,
         db_column='property_id',
         related_name='rooms'
     )
     room_number = models.CharField(max_length=10, help_text="Room number within property")
-    room_type = models.ForeignKey(
+    room_type_id: int
+    room_type: Any = models.ForeignKey(
         'room_types.RoomType',
         on_delete=models.DO_NOTHING,
         db_column='room_type_id',

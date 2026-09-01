@@ -1,6 +1,10 @@
+from typing import Any
 from django.db import models
 
 class Payment(models.Model):
+    objects = models.Manager()
+    DoesNotExist: Any = models.ObjectDoesNotExist
+
     METHOD_CHOICES = (
         ('credit_card', 'Credit Card'),
         ('debit_card', 'Debit Card'),
@@ -10,7 +14,8 @@ class Payment(models.Model):
     )
 
     payment_id = models.AutoField(primary_key=True)
-    booking = models.ForeignKey(
+    booking_id: int
+    booking: Any = models.ForeignKey(
         'bookings.Booking',
         on_delete=models.DO_NOTHING,
         db_column='booking_id',

@@ -1,9 +1,14 @@
+from typing import Any
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Review(models.Model):
+    objects = models.Manager()
+    DoesNotExist: Any = models.ObjectDoesNotExist
+
     review_id = models.AutoField(primary_key=True)
-    booking = models.OneToOneField(
+    booking_id: int
+    booking: Any = models.OneToOneField(
         'bookings.Booking',
         on_delete=models.DO_NOTHING,
         db_column='booking_id',

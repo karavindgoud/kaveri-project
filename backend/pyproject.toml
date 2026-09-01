@@ -1,7 +1,9 @@
 [tool.pyrefly]
-search-paths = [".", "apps", "api", ".."]
-extra-paths = [".", "apps", "api", ".."]
-extraPaths = [".", "apps", "api", ".."]
+search_path = [
+    "apps",
+    "api",
+    "."
+]
 
 [tool.pyright]
 extraPaths = [
@@ -10,3 +12,4 @@ extraPaths = [
     "api",
     ".."
 ]
+

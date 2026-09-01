@@ -70,9 +70,9 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> TokenData:
         return TokenData(username="admin", role="Admin", email="admin@kaveristays.com", guest_id=1)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        role: str = payload.get("role")
-        email: str = payload.get("email")
+        username: Optional[str] = payload.get("sub")
+        role: Optional[str] = payload.get("role")
+        email: Optional[str] = payload.get("email")
         guest_id: Optional[int] = payload.get("guest_id")
         if username is None or role is None:
             raise credentials_exception

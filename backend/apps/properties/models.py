@@ -1,7 +1,12 @@
+from typing import Any
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Property(models.Model):
+    objects = models.Manager()
+    DoesNotExist: Any = models.ObjectDoesNotExist
+    rooms: Any
+
     property_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, help_text="Hotel Property Name")
     city = models.CharField(max_length=50, help_text="City location of the property")

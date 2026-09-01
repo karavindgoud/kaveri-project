@@ -11,23 +11,34 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 import django
 django.setup()
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import auth, properties, rooms, guests, bookings, payments, reviews, rate_plans, reports
-from api.dependencies.db_migration import import_legacy_data_if_needed
+from api.dependencies.db_migration import import_legacy_data_if_needed, ensure_database_tables_exist, seed_initial_enterprise_data
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        import_legacy_data_if_needed()
+    except Exception as e:
+        print(f"WARNING: Startup migration encountered error: {e}")
+    yield
 
 app = FastAPI(
     title="Kaveri Stays - Enterprise Hotel Management API",
     description="Production-ready REST API for Kaveri Stays Hotel Management System built with FastAPI, Django ORM, and PostgreSQL.",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # Robust CORS Configuration: dynamically accepts any http/https origin with credentials
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=["*"],
     allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
@@ -59,12 +70,20 @@ app.include_router(reviews.router)
 app.include_router(rate_plans.router)
 app.include_router(reports.router)
 
-@app.on_event("startup")
-def startup_populate():
+@app.api_route("/api/setup-db", methods=["GET", "POST"], tags=["System Setup"])
+def setup_database_endpoint():
     try:
-        import_legacy_data_if_needed()
+        ensure_database_tables_exist()
+        seed_initial_enterprise_data()
+        return {
+            "status": "success",
+            "message": "Database schema created and initial luxury hotel data seeded successfully."
+        }
     except Exception as e:
-        print(f"WARNING: Startup migration encountered error: {e}")
+        return {
+            "status": "error",
+            "detail": str(e)
+        }
 
 @app.get("/", tags=["Health Check"])
 def root_health_check():

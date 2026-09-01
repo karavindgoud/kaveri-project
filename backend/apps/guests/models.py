@@ -1,6 +1,11 @@
+from typing import Any
 from django.db import models
 
 class Guest(models.Model):
+    objects = models.Manager()
+    DoesNotExist: Any = models.ObjectDoesNotExist
+    bookings: Any
+
     guest_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, help_text="Full Name")
     email = models.CharField(unique=True, max_length=255, help_text="Unique Email Address")
