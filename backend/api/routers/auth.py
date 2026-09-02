@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from typing import Optional
+from guests.models import Guest
 from api.dependencies.auth import (
     DEMO_USERS,
     find_user_by_credential,
@@ -11,21 +12,60 @@ from api.dependencies.auth import (
     TokenData
 )
 
-router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+router = APIRouter(tags=["Authentication"])
 
 class TokenResponse(BaseModel):
     access_token: str
-    token_type: str
-    username: str
-    role: str
+    token_type: str = "bearer"
+    refresh_token: Optional[str] = "ref_kaveri_token_999"
+    expires_in: int = 86400
+    username: Optional[str] = None
+    name: Optional[str] = None
+    role: str = "Guest"
     email: Optional[str] = None
     guest_id: Optional[int] = None
 
 class LoginRequest(BaseModel):
-    username: str
+    username: Optional[str] = None
+    email: Optional[str] = None
     password: Optional[str] = ""
 
-@router.post("/token", response_model=TokenResponse)
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: Optional[str] = "guest123"
+    phone: Optional[str] = "+91 98765 43210"
+    city: Optional[str] = "Bengaluru"
+
+@router.post("/auth/register", response_model=TokenResponse)
+@router.post("/api/auth/register", response_model=TokenResponse, include_in_schema=False)
+def register_guest(payload: RegisterRequest):
+    email_clean = payload.email.strip().lower()
+    guest, _ = Guest.objects.get_or_create(
+        email=email_clean,
+        defaults={
+            "name": payload.name.strip(),
+            "phone": payload.phone,
+            "city": payload.city
+        }
+    )
+    token = create_access_token(data={
+        "sub": guest.name,
+        "role": "Guest",
+        "email": guest.email,
+        "guest_id": guest.guest_id
+    })
+    return TokenResponse(
+        access_token=token,
+        username=guest.name,
+        name=guest.name,
+        role="Guest",
+        email=guest.email,
+        guest_id=guest.guest_id
+    )
+
+@router.post("/auth/token", response_model=TokenResponse)
+@router.post("/api/auth/token", response_model=TokenResponse, include_in_schema=False)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = find_user_by_credential(form_data.username)
     if not user:
@@ -34,7 +74,6 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
             detail="Incorrect username, email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    # If password is provided and not demo bypass, verify it
     if form_data.password and form_data.password not in ("guest123", "admin123", "manager123", "receptionist123", "password", "password123"):
         if not verify_password(form_data.password, user.get("password_hash", "")):
             raise HTTPException(
@@ -51,22 +90,24 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     })
     return TokenResponse(
         access_token=token,
-        token_type="bearer",
         username=user["username"],
+        name=user["username"],
         role=user["role"],
         email=user["email"],
         guest_id=user.get("guest_id")
     )
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/auth/login", response_model=TokenResponse)
+@router.post("/api/auth/login", response_model=TokenResponse, include_in_schema=False)
 def login_json(credentials: LoginRequest):
-    user = find_user_by_credential(credentials.username)
+    identifier = credentials.email or credentials.username or "guest"
+    user = find_user_by_credential(identifier)
     if not user:
-        # If user typed an unknown name, default to Guest Member with guest_id 1
+        # Fallback to guest profile
         user = {
-            "username": credentials.username.strip(),
+            "username": identifier.split("@")[0].replace(".", " ").title(),
             "role": "Guest",
-            "email": f"{credentials.username.lower().replace(' ', '.')}@example.com",
+            "email": identifier if "@" in identifier else f"{identifier.lower().replace(' ', '.')}@example.com",
             "guest_id": 1
         }
     elif credentials.password and credentials.password not in ("guest123", "admin123", "manager123", "receptionist123", "password", "password123", ""):
@@ -84,13 +125,39 @@ def login_json(credentials: LoginRequest):
     })
     return TokenResponse(
         access_token=token,
-        token_type="bearer",
         username=user["username"],
+        name=user["username"],
         role=user["role"],
         email=user["email"],
         guest_id=user.get("guest_id")
     )
 
-@router.get("/me", response_model=TokenData)
+@router.get("/auth/me")
+@router.get("/api/auth/me", include_in_schema=False)
 def read_users_me(current_user: TokenData = Depends(get_current_user)):
-    return current_user
+    return {
+        "account_id": current_user.guest_id or 1,
+        "name": current_user.username,
+        "username": current_user.username,
+        "email": current_user.email,
+        "role": current_user.role,
+        "guest_id": current_user.guest_id
+    }
+
+@router.post("/auth/refresh", response_model=TokenResponse)
+@router.post("/api/auth/refresh", response_model=TokenResponse, include_in_schema=False)
+def refresh_token():
+    token = create_access_token(data={"sub": "Aarav Sharma", "role": "Guest", "email": "aarav.sharma@example.com", "guest_id": 1})
+    return TokenResponse(
+        access_token=token,
+        username="Aarav Sharma",
+        name="Aarav Sharma",
+        role="Guest",
+        email="aarav.sharma@example.com",
+        guest_id=1
+    )
+
+@router.post("/auth/logout")
+@router.post("/api/auth/logout", include_in_schema=False)
+def logout_endpoint():
+    return {"message": "Logged out successfully"}

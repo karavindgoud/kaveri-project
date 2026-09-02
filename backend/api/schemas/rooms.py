@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
+from decimal import Decimal
 
 class RoomTypeBase(BaseModel):
     type_name: str = Field(..., max_length=20, example="Deluxe")
@@ -31,5 +32,19 @@ class RoomResponse(RoomBase):
     property_name: Optional[str] = None
     room_type_name: Optional[str] = None
     max_occupancy: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class AvailableRoomResponse(BaseModel):
+    room_id: int
+    property_id: int
+    property_name: str
+    property_city: str
+    room_number: str
+    room_type_id: int
+    type_name: str
+    max_occupancy: int
+    nightly_rate: float
+    total_rate: float
 
     model_config = ConfigDict(from_attributes=True)

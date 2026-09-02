@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Optional
 from properties.models import Property
+from room_types.models import RoomType
 from api.schemas.properties import PropertyCreate, PropertyUpdate, PropertyResponse
 from api.dependencies.auth import get_current_user, require_role, TokenData
 
-router = APIRouter(prefix="/api/properties", tags=["Properties"])
+router = APIRouter(tags=["Properties"])
 
-@router.get("", response_model=List[PropertyResponse])
+@router.get("/properties", response_model=List[PropertyResponse])
+@router.get("/api/properties", response_model=List[PropertyResponse], include_in_schema=False)
 def get_properties(
     city: Optional[str] = None,
-    stars: Optional[int] = None,
-    current_user: TokenData = Depends(get_current_user)
+    stars: Optional[int] = None
 ):
     queryset = Property.objects.all()
     if city:
@@ -29,8 +30,9 @@ def get_properties(
         ))
     return results
 
-@router.get("/{property_id}", response_model=PropertyResponse)
-def get_property(property_id: int, current_user: TokenData = Depends(get_current_user)):
+@router.get("/properties/{property_id}", response_model=PropertyResponse)
+@router.get("/api/properties/{property_id}", response_model=PropertyResponse, include_in_schema=False)
+def get_property(property_id: int):
     try:
         prop = Property.objects.get(pk=property_id)
         return PropertyResponse(
@@ -43,7 +45,8 @@ def get_property(property_id: int, current_user: TokenData = Depends(get_current
     except Property.DoesNotExist:
         raise HTTPException(status_code=404, detail="Property not found")
 
-@router.post("", response_model=PropertyResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/properties", response_model=PropertyResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/api/properties", response_model=PropertyResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 def create_property(
     payload: PropertyCreate,
     current_user: TokenData = Depends(require_role(["Admin", "Manager"]))
@@ -61,7 +64,8 @@ def create_property(
         total_rooms=0
     )
 
-@router.patch("/{property_id}", response_model=PropertyResponse)
+@router.patch("/properties/{property_id}", response_model=PropertyResponse)
+@router.patch("/api/properties/{property_id}", response_model=PropertyResponse, include_in_schema=False)
 def update_property(
     property_id: int,
     payload: PropertyUpdate,

@@ -31,14 +31,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Kaveri Stays - Ultra-Luxury Hospitality API",
-    description="Production-ready REST API for Kaveri Stays Hotel Management System built with FastAPI, Django ORM, and PostgreSQL.",
+    description="Production-grade REST API for Kaveri Stays luxury hotel booking and enterprise management across Coorg, Ooty, and Alleppey.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
 )
 
-# GZip Compression for High Performance & Low Latency
+# GZip Compression for Fast Network Delivery
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Robust CORS Configuration
@@ -76,7 +76,19 @@ app.include_router(reviews.router)
 app.include_router(rate_plans.router)
 app.include_router(reports.router)
 
-@app.api_route("/api/setup-db", methods=["GET", "POST"], tags=["System Setup"])
+@app.get("/health", tags=["Health Check"])
+@app.get("/api/health", tags=["Health Check"], include_in_schema=False)
+def api_health_check():
+    return {
+        "status": "online",
+        "system": "Kaveri Stays Ultra-Luxury Engine",
+        "database": "PostgreSQL (30 Legacy Records Active)",
+        "properties": ["Kaveri Riverside (Coorg)", "Kaveri Hilltop (Ooty)", "Kaveri Backwater (Alleppey)"],
+        "docs": "/docs"
+    }
+
+@app.api_route("/setup-db", methods=["GET", "POST"], tags=["System Setup"])
+@app.api_route("/api/setup-db", methods=["GET", "POST"], tags=["System Setup"], include_in_schema=False)
 def setup_database_endpoint():
     try:
         ensure_database_tables_exist()
@@ -90,15 +102,6 @@ def setup_database_endpoint():
             "status": "error",
             "detail": str(e)
         }
-
-@app.get("/api/health", tags=["Health Check"])
-def api_health_check():
-    return {
-        "status": "online",
-        "system": "Kaveri Stays Ultra-Luxury Engine",
-        "database": "PostgreSQL (30 Legacy Records Active)",
-        "docs": "/docs"
-    }
 
 # ── SPA Frontend Static Asset Mounting & Catch-All Routing ──
 candidate_dist_paths = [
@@ -125,15 +128,20 @@ if frontend_dist:
     @app.get("/{file_name:path}", include_in_schema=False)
     async def serve_spa_or_static(file_name: str, request: Request):
         # Prevent intercepting API routes or docs
-        if file_name.startswith("api/") or file_name.startswith("docs") or file_name.startswith("redoc") or file_name.startswith("openapi.json"):
-            return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
+        api_prefixes = (
+            "api/", "auth/", "properties", "rooms", "bookings", "payments",
+            "reviews", "reports", "health", "docs", "redoc", "openapi.json", "setup-db"
+        )
+        for prefix in api_prefixes:
+            if file_name == prefix or file_name.startswith(prefix + "/"):
+                return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
 
-        # 1. Check if exact file exists in dist (e.g. hero_resort.jpg, favicon, etc.)
+        # 1. Check if exact file exists in dist (e.g. hero_resort.jpg, favicon, robots.txt, sitemap.xml)
         target_file = frontend_dist / file_name
         if file_name and target_file.is_file():
             return FileResponse(target_file)
         
-        # 2. Return index.html with 200 OK and text/html for all client-side routes (e.g. /reviews, /dashboard, /bookings)
+        # 2. Return index.html with 200 OK and text/html for all client-side routes (e.g. /, /vacancies, /my-bookings, /properties, /dashboard)
         index_path = frontend_dist / "index.html"
         if index_path.exists():
             return FileResponse(
@@ -149,15 +157,5 @@ if frontend_dist:
         return HTMLResponse(
             status_code=200,
             content="<!DOCTYPE html><html><head><title>Kaveri Stays</title></head><body><div id='root'></div></body></html>",
-            media_type="text/html; charset=utf-8"
-        )
-else:
-    @app.get("/{file_name:path}", include_in_schema=False)
-    async def fallback_html_route(file_name: str):
-        if file_name.startswith("api/"):
-            return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
-        return HTMLResponse(
-            status_code=200,
-            content="<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Kaveri Stays</title></head><body><div id='root'>Loading Kaveri Stays...</div></body></html>",
             media_type="text/html; charset=utf-8"
         )
