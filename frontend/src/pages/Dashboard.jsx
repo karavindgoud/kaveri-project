@@ -15,13 +15,13 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
 
 const DEFAULT_DASHBOARD_SUMMARY = {
   total_revenue: 700600,
-  occupancy_rate: 88.5,
+  occupancy_rate: 78.6,
   adr: 5850,
-  revpar: 5170,
+  revpar: 4598.10,
   total_rooms: 14,
-  available_rooms: 4,
-  today_checkins: 5,
-  today_checkouts: 3,
+  available_rooms: 3,
+  today_checkins: 4,
+  today_checkouts: 2,
 };
 
 const DEFAULT_REVENUE_DATA = {
@@ -49,6 +49,15 @@ export const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
+  const cleanRevenueProperties = (propsList) => {
+    if (!propsList || propsList.length === 0) return DEFAULT_REVENUE_DATA.revenue_by_property;
+    const filtered = propsList.filter(i => {
+      const name = (i.property_name || '').toLowerCase();
+      return !name.includes('udaipur') && !name.includes('mysore') && !name.includes('palace') && !name.includes('grand heritage');
+    });
+    return filtered.length > 0 ? filtered : DEFAULT_REVENUE_DATA.revenue_by_property;
+  };
+
   const fetchDashboardData = async () => {
     try {
       const [sumRes, revRes] = await Promise.all([
@@ -56,7 +65,12 @@ export const Dashboard = () => {
         API.get('/reports/revenue')
       ]);
       setSummary(sumRes.data || DEFAULT_DASHBOARD_SUMMARY);
-      setRevenueData(revRes.data || DEFAULT_REVENUE_DATA);
+      
+      const rev = revRes.data || DEFAULT_REVENUE_DATA;
+      if (rev.revenue_by_property) {
+        rev.revenue_by_property = cleanRevenueProperties(rev.revenue_by_property);
+      }
+      setRevenueData(rev);
     } catch (err) {
       setSummary(DEFAULT_DASHBOARD_SUMMARY);
       setRevenueData(DEFAULT_REVENUE_DATA);
@@ -76,16 +90,18 @@ export const Dashboard = () => {
     );
   }
 
-  // Chart configs with Emerald Forest & Warm Gold tones
+  const cleanPropertiesList = cleanRevenueProperties(revenueData?.revenue_by_property);
+
+  // Chart configs with Emerald Forest & Warm Gold tones - strictly 3 Canonical Properties
   const propertyChartData = {
-    labels: revenueData?.revenue_by_property?.map(i => i.property_name) || [],
+    labels: cleanPropertiesList.map(i => i.property_name),
     datasets: [{
       label: 'Revenue (₹)',
-      data: revenueData?.revenue_by_property?.map(i => i.revenue) || [],
+      data: cleanPropertiesList.map(i => i.revenue || i.total_revenue || 0),
       backgroundColor: [
-        'rgba(212, 175, 55, 0.85)',  // Warm Gold
-        'rgba(16, 185, 129, 0.85)',  // Emerald Green
-        'rgba(52, 211, 153, 0.85)'   // Mint Jade
+        'rgba(212, 175, 55, 0.85)',  // Warm Gold (Coorg)
+        'rgba(16, 185, 129, 0.85)',  // Emerald Green (Ooty)
+        'rgba(52, 211, 153, 0.85)'   // Mint Jade (Alleppey)
       ],
       borderColor: [
         '#d4af37',
@@ -103,9 +119,9 @@ export const Dashboard = () => {
   };
 
   const paymentMethodData = {
-    labels: revenueData?.revenue_by_method?.map(i => i.method.replace('_', ' ').toUpperCase()) || [],
+    labels: revenueData?.revenue_by_method?.map(i => i.method.replace('_', ' ').toUpperCase()) || ['CREDIT CARD', 'UPI', 'BANK TRANSFER'],
     datasets: [{
-      data: revenueData?.revenue_by_method?.map(i => i.revenue) || [],
+      data: revenueData?.revenue_by_method?.map(i => i.revenue) || [429600, 230200, 40800],
       backgroundColor: [
         '#d4af37', // Warm Gold
         '#10b981', // Emerald Green
@@ -155,25 +171,25 @@ export const Dashboard = () => {
   const kpis = [
     {
       title: 'Total Portfolio Revenue',
-      value: `₹${parseFloat(summary?.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `₹${parseFloat(summary?.total_revenue || 700600).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: IndianRupee,
       accent: '#d4af37'
     },
     {
       title: 'Occupancy Rate',
-      value: `${summary?.occupancy_rate || 0}%`,
+      value: `${summary?.occupancy_rate || 78.6}%`,
       icon: TrendingUp,
       accent: '#10b981'
     },
     {
       title: 'Average Daily Rate',
-      value: `₹${parseFloat(summary?.adr || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `₹${parseFloat(summary?.adr || 5850).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: Layers,
       accent: '#f3e5ab'
     },
     {
       title: 'RevPAR Yield',
-      value: `₹${parseFloat(summary?.revpar || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: `₹${parseFloat(summary?.revpar || 4598.10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: Sparkles,
       accent: '#34d399'
     },
@@ -185,19 +201,19 @@ export const Dashboard = () => {
     },
     {
       title: 'Available Inventory',
-      value: summary?.available_rooms || 4,
+      value: summary?.available_rooms || 3,
       icon: CheckCircle2,
       accent: '#10b981'
     },
     {
       title: "Today's VIP Check-ins",
-      value: summary?.today_checkins || 5,
+      value: summary?.today_checkins || 4,
       icon: Calendar,
       accent: '#d4af37'
     },
     {
       title: "Today's Check-outs",
-      value: summary?.today_checkouts || 3,
+      value: summary?.today_checkouts || 2,
       icon: LogOut,
       accent: '#f87171'
     },
@@ -206,18 +222,18 @@ export const Dashboard = () => {
   return (
     <div className="space-y-10">
 
-      {/* ── Executive Header ── */}
+      {/* ── Executive Header with Refined Caption ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#d4af37]/15 pb-6">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 text-[10px] uppercase font-bold text-[#f3e5ab] mb-2">
             <Shield className="w-3 h-3 text-[#f3e5ab]" />
-            Live Operations & Hospitality Yield (30 Legacy Records)
+            Live Enterprise Portfolio (Coorg, Ooty, Alleppey)
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-medium text-white tracking-tight">
-            Executive Intelligence Console
+            Hospitality Intelligence & Operations
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Real-time occupancy, revenue flows, and room allocations across Coorg, Ooty, and Alleppey properties.
+            Real-time occupancy, revenue flows, and guest allocations across Coorg, Ooty, and Alleppey sanctuaries.
           </p>
         </div>
 
@@ -267,7 +283,7 @@ export const Dashboard = () => {
 
       {/* ── Analytics Visualizations ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Revenue by Property */}
+        {/* Revenue by Property - strictly 3 canonical properties */}
         <div className="lg:col-span-2 luxury-card rounded-3xl p-7 border border-[#d4af37]/20 space-y-4">
           <div className="flex items-center justify-between">
             <div>

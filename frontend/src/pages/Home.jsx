@@ -86,12 +86,12 @@ export const Home = () => {
           </div>
 
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-7xl font-medium text-white tracking-tight leading-[1.1]">
-            Where Luxury <br />
-            <span className="gold-text-gradient font-semibold italic">Meets Wilderness</span>
+            Curated Sanctuaries of <br />
+            <span className="gold-text-gradient font-semibold italic">Timeless Distinction</span>
           </h1>
 
           <p className="text-slate-300 text-sm sm:text-base lg:text-lg font-light max-w-2xl mx-auto leading-relaxed text-shadow-sm">
-            Three iconic properties in Coorg, Ooty, and Alleppey. Nestled in nature's most breathtaking sanctuaries — where every stay becomes an unforgettable chapter.
+            Three iconic properties in Coorg, Ooty, and Alleppey. Where pristine natural landscapes meet unparalleled bespoke hospitality.
           </p>
 
           {/* ── SEARCH & CHECK VACANCIES BAR ── */}
