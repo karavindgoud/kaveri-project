@@ -30,16 +30,25 @@ export const GuestPortal = () => {
     fetchProperties();
   }, [searchTerm]);
 
+  const cleanProps = (list) => {
+    return (list || []).filter(p => {
+      const n = (p.name || '').toLowerCase();
+      const c = (p.city || '').toLowerCase();
+      return !n.includes('palace') && !n.includes('grand heritage') && !c.includes('udaipur') && !c.includes('mysore');
+    });
+  };
+
   const fetchProperties = async () => {
     try {
       const params = {};
       if (searchTerm) params.city = searchTerm;
       const res = await API.get('/properties', { params });
       if (res.data && res.data.length > 0) {
-        setProperties(res.data);
+        const filtered = cleanProps(res.data);
+        setProperties(filtered.length > 0 ? filtered : DEFAULT_PROPERTIES);
       } else {
         const stored = JSON.parse(localStorage.getItem('kaveri_custom_properties') || '[]');
-        const allProps = [...DEFAULT_PROPERTIES, ...stored];
+        const allProps = cleanProps([...DEFAULT_PROPERTIES, ...stored]);
         if (searchTerm) {
           const s = searchTerm.toLowerCase();
           setProperties(allProps.filter(p => p.name.toLowerCase().includes(s) || p.city.toLowerCase().includes(s)));
@@ -49,7 +58,7 @@ export const GuestPortal = () => {
       }
     } catch (err) {
       const stored = JSON.parse(localStorage.getItem('kaveri_custom_properties') || '[]');
-      const allProps = [...DEFAULT_PROPERTIES, ...stored];
+      const allProps = cleanProps([...DEFAULT_PROPERTIES, ...stored]);
       if (searchTerm) {
         const s = searchTerm.toLowerCase();
         setProperties(allProps.filter(p => p.name.toLowerCase().includes(s) || p.city.toLowerCase().includes(s)));

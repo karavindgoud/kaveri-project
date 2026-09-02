@@ -232,11 +232,23 @@ def seed_initial_enterprise_data():
     try:
         ensure_database_tables_exist()
 
-        # Check if already populated with exact 30 bookings
-        if Booking.objects.count() == 30 and Property.objects.filter(name__icontains="Kaveri Riverside").exists():
+        # Unconditionally remove any old/non-canonical properties (e.g. Palace, Grand Heritage, Udaipur, Mysore)
+        Property.objects.filter(name__icontains="Palace").delete()
+        Property.objects.filter(name__icontains="Grand Heritage").delete()
+        Property.objects.filter(city__icontains="Udaipur").delete()
+        Property.objects.filter(city__icontains="Mysore").delete()
+        Property.objects.exclude(name__in=["Kaveri Riverside", "Kaveri Hilltop", "Kaveri Backwater"]).delete()
+
+        # Check if already populated with exact 30 bookings and 3 canonical properties
+        if (
+            Booking.objects.count() == 30 
+            and Property.objects.count() == 3
+            and not Property.objects.filter(name__icontains="Palace").exists()
+            and not Property.objects.filter(name__icontains="Grand Heritage").exists()
+        ):
             return
 
-        print("INFO: Seeding exact 30-record Kaveri database...")
+        print("INFO: Seeding exact 3-property, 30-record Kaveri database...")
 
         with transaction.atomic():
             Review.objects.all().delete()
@@ -249,21 +261,21 @@ def seed_initial_enterprise_data():
             Property.objects.all().delete()
             LegacyReservations.objects.all().delete()
 
-            # 1. Properties
-            prop_riverside, _ = Property.objects.get_or_create(
+            # 1. Exact 3 Canonical Properties from legacy dataset
+            prop_riverside = Property.objects.create(
                 name="Kaveri Riverside",
                 city="Coorg",
-                defaults={"stars": 4}
+                stars=4
             )
-            prop_hilltop, _ = Property.objects.get_or_create(
+            prop_hilltop = Property.objects.create(
                 name="Kaveri Hilltop",
                 city="Ooty",
-                defaults={"stars": 5}
+                stars=5
             )
-            prop_backwater, _ = Property.objects.get_or_create(
+            prop_backwater = Property.objects.create(
                 name="Kaveri Backwater",
                 city="Alleppey",
-                defaults={"stars": 4}
+                stars=4
             )
 
             property_map = {
@@ -277,9 +289,9 @@ def seed_initial_enterprise_data():
             }
 
             # 2. Room Types
-            rt_deluxe, _ = RoomType.objects.get_or_create(type_name="Deluxe", defaults={"max_occupancy": 4})
-            rt_suite, _ = RoomType.objects.get_or_create(type_name="Suite", defaults={"max_occupancy": 4})
-            rt_standard, _ = RoomType.objects.get_or_create(type_name="Standard", defaults={"max_occupancy": 4})
+            rt_deluxe = RoomType.objects.create(type_name="Deluxe", max_occupancy=4)
+            rt_suite = RoomType.objects.create(type_name="Suite", max_occupancy=4)
+            rt_standard = RoomType.objects.create(type_name="Standard", max_occupancy=4)
 
             room_type_map = {
                 "deluxe": rt_deluxe,
@@ -287,21 +299,21 @@ def seed_initial_enterprise_data():
                 "standard": rt_standard,
             }
 
-            # 3. Rooms across properties
+            # 3. Rooms across 3 properties
             rooms_dict = {}
             # Coorg rooms: 101, 102, 103, 104, 105
             for rnum, rtype in [("101", rt_deluxe), ("102", rt_deluxe), ("103", rt_standard), ("104", rt_standard), ("105", rt_suite)]:
-                r, _ = Room.objects.get_or_create(property=prop_riverside, room_number=rnum, defaults={"room_type": rtype})
+                r = Room.objects.create(property=prop_riverside, room_number=rnum, room_type=rtype)
                 rooms_dict[(prop_riverside.property_id, rnum)] = r
 
             # Ooty rooms: 201, 202, 203, 204, 205
             for rnum, rtype in [("201", rt_suite), ("202", rt_deluxe), ("203", rt_deluxe), ("204", rt_standard), ("205", rt_deluxe)]:
-                r, _ = Room.objects.get_or_create(property=prop_hilltop, room_number=rnum, defaults={"room_type": rtype})
+                r = Room.objects.create(property=prop_hilltop, room_number=rnum, room_type=rtype)
                 rooms_dict[(prop_hilltop.property_id, rnum)] = r
 
             # Alleppey rooms: 301, 302, 303, 304
             for rnum, rtype in [("301", rt_deluxe), ("302", rt_deluxe), ("303", rt_suite), ("304", rt_standard)]:
-                r, _ = Room.objects.get_or_create(property=prop_backwater, room_number=rnum, defaults={"room_type": rtype})
+                r = Room.objects.create(property=prop_backwater, room_number=rnum, room_type=rtype)
                 rooms_dict[(prop_backwater.property_id, rnum)] = r
 
             # 4. Populate LegacyReservations table and Normalized Entities
@@ -309,27 +321,25 @@ def seed_initial_enterprise_data():
                 row_id, g_name, g_email, g_phone, g_city, h_name, h_city, h_star, r_nums, r_type, g_count, c_in_str, c_out_str, n_rate_str, t_paid_str, p_method_str, status_str, notes_val = row
 
                 # Save raw row into legacy_reservations
-                LegacyReservations.objects.update_or_create(
+                LegacyReservations.objects.create(
                     row_id=row_id,
-                    defaults={
-                        "guest_name": g_name,
-                        "guest_email": g_email,
-                        "guest_phone": g_phone,
-                        "guest_city": g_city,
-                        "hotel_name": h_name,
-                        "hotel_city": h_city,
-                        "hotel_star": h_star,
-                        "room_numbers": r_nums,
-                        "room_type": r_type,
-                        "guests_count": g_count,
-                        "checkin": c_in_str,
-                        "checkout": c_out_str,
-                        "nightly_rate": n_rate_str,
-                        "total_paid": t_paid_str,
-                        "payment_method": p_method_str,
-                        "status": status_str,
-                        "notes": notes_val
-                    }
+                    guest_name=g_name,
+                    guest_email=g_email,
+                    guest_phone=g_phone,
+                    guest_city=g_city,
+                    hotel_name=h_name,
+                    hotel_city=h_city,
+                    hotel_star=h_star,
+                    room_numbers=r_nums,
+                    room_type=r_type,
+                    guests_count=g_count,
+                    checkin=c_in_str,
+                    checkout=c_out_str,
+                    nightly_rate=n_rate_str,
+                    total_paid=t_paid_str,
+                    payment_method=p_method_str,
+                    status=status_str,
+                    notes=notes_val
                 )
 
                 # Normalized Guest
@@ -357,10 +367,10 @@ def seed_initial_enterprise_data():
                 primary_room_num = [r.strip() for r in r_nums.split(",") if r.strip()][0]
                 room_obj = rooms_dict.get((target_prop.property_id, primary_room_num))
                 if not room_obj:
-                    room_obj, _ = Room.objects.get_or_create(
+                    room_obj = Room.objects.create(
                         property=target_prop,
                         room_number=primary_room_num,
-                        defaults={"room_type": rt_obj}
+                        room_type=rt_obj
                     )
                     rooms_dict[(target_prop.property_id, primary_room_num)] = room_obj
 
@@ -436,7 +446,7 @@ def seed_initial_enterprise_data():
                         review_date=check_out_date
                     )
 
-        print("SUCCESS: Seeded 30 Kaveri legacy records, 3 properties, 19 guests, 30 payments & reviews.")
+        print("SUCCESS: Seeded 30 Kaveri legacy records, 3 canonical properties (Riverside, Hilltop, Backwater), 19 guests, 30 payments & reviews.")
     except Exception as e:
         print(f"WARNING: Database population error: {e}")
 

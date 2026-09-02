@@ -16,6 +16,14 @@ export const Properties = () => {
     fetchProperties();
   }, [cityFilter, starFilter]);
 
+  const cleanProps = (list) => {
+    return (list || []).filter(p => {
+      const n = (p.name || '').toLowerCase();
+      const c = (p.city || '').toLowerCase();
+      return !n.includes('palace') && !n.includes('grand heritage') && !c.includes('udaipur') && !c.includes('mysore');
+    });
+  };
+
   const fetchProperties = async () => {
     try {
       const params = {};
@@ -23,10 +31,17 @@ export const Properties = () => {
       if (starFilter) params.stars = starFilter;
       const res = await API.get('/properties', { params });
       if (res.data && res.data.length > 0) {
-        setProperties(res.data);
+        let filtered = cleanProps(res.data);
+        if (cityFilter) {
+          filtered = filtered.filter(p => p.city.toLowerCase().includes(cityFilter.toLowerCase()));
+        }
+        if (starFilter) {
+          filtered = filtered.filter(p => String(p.stars) === String(starFilter));
+        }
+        setProperties(filtered.length > 0 ? filtered : DEFAULT_PROPERTIES);
       } else {
         const stored = JSON.parse(localStorage.getItem('kaveri_custom_properties') || '[]');
-        let combined = [...DEFAULT_PROPERTIES, ...stored];
+        let combined = cleanProps([...DEFAULT_PROPERTIES, ...stored]);
         if (cityFilter) {
           combined = combined.filter(p => p.city.toLowerCase().includes(cityFilter.toLowerCase()));
         }
@@ -37,7 +52,7 @@ export const Properties = () => {
       }
     } catch (err) {
       const stored = JSON.parse(localStorage.getItem('kaveri_custom_properties') || '[]');
-      let combined = [...DEFAULT_PROPERTIES, ...stored];
+      let combined = cleanProps([...DEFAULT_PROPERTIES, ...stored]);
       if (cityFilter) {
         combined = combined.filter(p => p.city.toLowerCase().includes(cityFilter.toLowerCase()));
       }

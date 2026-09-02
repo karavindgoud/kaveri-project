@@ -133,20 +133,19 @@ def get_revenue_report(current_user: TokenData = Depends(get_current_user)) -> D
     except Exception as e:
         return {
             "revenue_by_property": [
-                {"property_name": "The Kaveri Palace & Spa", "revenue": 38500.0},
-                {"property_name": "The Kaveri Backwater Lagoon", "revenue": 29000.0},
-                {"property_name": "Kaveri Mist Rainforest Retreat", "revenue": 18000.0},
-                {"property_name": "The Kaveri Grand Heritage", "revenue": 11000.0}
+                {"property_name": "Kaveri Riverside (Coorg)", "revenue": 215400.0},
+                {"property_name": "Kaveri Hilltop (Ooty)", "revenue": 247600.0},
+                {"property_name": "Kaveri Backwater (Alleppey)", "revenue": 237600.0}
             ],
             "revenue_by_method": [
-                {"method": "credit_card", "revenue": 52000.0},
-                {"method": "upi", "revenue": 28500.0},
-                {"method": "bank_transfer", "revenue": 16000.0}
+                {"method": "credit_card", "revenue": 429600.0},
+                {"method": "upi", "revenue": 230200.0},
+                {"method": "bank_transfer", "revenue": 40800.0}
             ],
             "revenue_by_room_type": [
-                {"room_type": "Presidential Villa", "revenue": 45000.0},
-                {"room_type": "Deluxe Suite", "revenue": 32000.0},
-                {"room_type": "Grand Heritage", "revenue": 19500.0}
+                {"room_type": "Deluxe", "revenue": 341600.0},
+                {"room_type": "Suite", "revenue": 257700.0},
+                {"room_type": "Standard", "revenue": 101300.0}
             ]
         }
 
