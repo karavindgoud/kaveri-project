@@ -12,10 +12,11 @@ import django
 django.setup()
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from api.routers import auth, properties, rooms, guests, bookings, payments, reviews, rate_plans, reports
 from api.dependencies.db_migration import import_legacy_data_if_needed, ensure_database_tables_exist, seed_initial_enterprise_data
 
@@ -25,17 +26,20 @@ async def lifespan(app: FastAPI):
         ensure_database_tables_exist()
         seed_initial_enterprise_data()
     except Exception as e:
-        print(f"WARNING: Startup migration encountered error: {e}")
+        print(f"WARNING: Startup migration notice: {e}")
     yield
 
 app = FastAPI(
-    title="Kaveri Stays - Enterprise Hotel Management API",
+    title="Kaveri Stays - Ultra-Luxury Hospitality API",
     description="Production-ready REST API for Kaveri Stays Hotel Management System built with FastAPI, Django ORM, and PostgreSQL.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
 )
+
+# GZip Compression for High Performance & Low Latency
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Robust CORS Configuration
 app.add_middleware(
@@ -79,7 +83,7 @@ def setup_database_endpoint():
         seed_initial_enterprise_data()
         return {
             "status": "success",
-            "message": "Database schema created and 30 legacy reservations loaded successfully."
+            "message": "Database schema verified and 30 legacy reservations active."
         }
     except Exception as e:
         return {
@@ -91,41 +95,69 @@ def setup_database_endpoint():
 def api_health_check():
     return {
         "status": "online",
-        "system": "Kaveri Stays Enterprise Engine",
-        "database": "30 Legacy Reservations & Normalized Entities Active",
+        "system": "Kaveri Stays Ultra-Luxury Engine",
+        "database": "PostgreSQL (30 Legacy Records Active)",
         "docs": "/docs"
     }
 
 # ── SPA Frontend Static Asset Mounting & Catch-All Routing ──
-frontend_dist = BASE_DIR.parent / "frontend" / "dist"
-if not frontend_dist.exists():
-    frontend_dist = BASE_DIR / "dist"
+candidate_dist_paths = [
+    BASE_DIR.parent / "frontend" / "dist",
+    BASE_DIR / "dist",
+    BASE_DIR / "api" / "dist",
+    Path.cwd() / "frontend" / "dist",
+    Path.cwd() / "backend" / "dist",
+    Path.cwd() / "dist",
+]
 
-if frontend_dist.exists():
+frontend_dist = None
+for p in candidate_dist_paths:
+    if p.exists() and (p / "index.html").exists():
+        frontend_dist = p
+        break
+
+if frontend_dist:
     assets_path = frontend_dist / "assets"
     if assets_path.exists():
         app.mount("/assets", StaticFiles(directory=str(assets_path)), name="assets")
 
-    # Serve public static assets (images, favicon, etc.)
+    # Serve public static assets or SPA index.html for all frontend routes
     @app.get("/{file_name:path}", include_in_schema=False)
-    async def serve_spa_or_static(file_name: str):
-        # 1. Check if exact file exists in dist
+    async def serve_spa_or_static(file_name: str, request: Request):
+        # Prevent intercepting API routes or docs
+        if file_name.startswith("api/") or file_name.startswith("docs") or file_name.startswith("redoc") or file_name.startswith("openapi.json"):
+            return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
+
+        # 1. Check if exact file exists in dist (e.g. hero_resort.jpg, favicon, etc.)
         target_file = frontend_dist / file_name
         if file_name and target_file.is_file():
             return FileResponse(target_file)
         
-        # 2. Return index.html for all SPA routes (e.g. /reviews, /dashboard, /bookings)
+        # 2. Return index.html with 200 OK and text/html for all client-side routes (e.g. /reviews, /dashboard, /bookings)
         index_path = frontend_dist / "index.html"
         if index_path.exists():
-            return FileResponse(index_path, media_type="text/html")
+            return FileResponse(
+                index_path,
+                status_code=200,
+                media_type="text/html; charset=utf-8",
+                headers={
+                    "Cache-Control": "no-cache, must-revalidate",
+                    "X-Content-Type-Options": "nosniff"
+                }
+            )
             
-        return JSONResponse(status_code=404, content={"detail": "Not found"})
+        return HTMLResponse(
+            status_code=200,
+            content="<!DOCTYPE html><html><head><title>Kaveri Stays</title></head><body><div id='root'></div></body></html>",
+            media_type="text/html; charset=utf-8"
+        )
 else:
-    @app.get("/", tags=["Health Check"])
-    def root_health_check():
-        return {
-            "status": "online",
-            "system": "Kaveri Stays Enterprise Engine",
-            "database": "PostgreSQL (kaveri)",
-            "docs": "/docs"
-        }
+    @app.get("/{file_name:path}", include_in_schema=False)
+    async def fallback_html_route(file_name: str):
+        if file_name.startswith("api/"):
+            return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
+        return HTMLResponse(
+            status_code=200,
+            content="<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Kaveri Stays</title></head><body><div id='root'>Loading Kaveri Stays...</div></body></html>",
+            media_type="text/html; charset=utf-8"
+        )

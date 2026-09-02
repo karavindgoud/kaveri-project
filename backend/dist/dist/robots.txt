@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kaveri-project-2.onrender.com/sitemap.xml
