@@ -3,30 +3,36 @@ import API from '../services/api';
 import { CreditCard, Plus, IndianRupee, Calendar, User, Sparkles, AlertCircle, ShieldCheck } from 'lucide-react';
 
 const DEFAULT_PAYMENTS = [
-  {
-    payment_id: 501,
-    booking_id: 1001,
-    guest_name: 'Lord Henry Sterling',
-    amount: 2600.00,
-    method: 'credit_card',
-    payment_date: '2026-08-28'
-  },
-  {
-    payment_id: 502,
-    booking_id: 1002,
-    guest_name: 'Lady Eleanor Vance',
-    amount: 2160.00,
-    method: 'upi',
-    payment_date: '2026-08-25'
-  },
-  {
-    payment_id: 503,
-    booking_id: 1003,
-    guest_name: 'Dr. Siddharth Menon',
-    amount: 2040.00,
-    method: 'bank_transfer',
-    payment_date: '2026-08-20'
-  }
+  { payment_id: 1, booking_id: 1, guest_name: 'Aarav Sharma', amount: 13500.00, method: 'credit_card', payment_date: '2025-01-12' },
+  { payment_id: 2, booking_id: 2, guest_name: 'Aarav Sharma', amount: 27000.00, method: 'credit_card', payment_date: '2025-02-14' },
+  { payment_id: 3, booking_id: 3, guest_name: 'Anita Desai', amount: 24600.00, method: 'upi', payment_date: '2025-02-03' },
+  { payment_id: 4, booking_id: 4, guest_name: 'Anita Desai', amount: 24600.00, method: 'upi', payment_date: '2025-03-09' },
+  { payment_id: 5, booking_id: 5, guest_name: 'Ben Carter', amount: 6400.00, method: 'credit_card', payment_date: '2025-03-20' },
+  { payment_id: 6, booking_id: 6, guest_name: 'Chloe Dubois', amount: 40800.00, method: 'credit_card', payment_date: '2025-04-05' },
+  { payment_id: 7, booking_id: 7, guest_name: 'Daniel Fischer', amount: 20400.00, method: 'bank_transfer', payment_date: '2025-04-18' },
+  { payment_id: 8, booking_id: 8, guest_name: 'Daniel Fischer', amount: 20400.00, method: 'bank_transfer', payment_date: '2025-05-02' },
+  { payment_id: 9, booking_id: 9, guest_name: 'Elena Rossi', amount: 38000.00, method: 'credit_card', payment_date: '2025-05-19' },
+  { payment_id: 10, booking_id: 10, guest_name: 'Farhan Ali', amount: 13500.00, method: 'upi', payment_date: '2025-06-01' },
+  { payment_id: 11, booking_id: 11, guest_name: 'Grace Okafor', amount: 16200.00, method: 'credit_card', payment_date: '2025-06-15' },
+  { payment_id: 12, booking_id: 12, guest_name: 'Hiroshi Tanaka', amount: 25500.00, method: 'credit_card', payment_date: '2025-07-08' },
+  { payment_id: 13, booking_id: 13, guest_name: 'Hiroshi Tanaka', amount: 23700.00, method: 'credit_card', payment_date: '2025-08-22' },
+  { payment_id: 14, booking_id: 14, guest_name: 'Isabel Moreno', amount: 32800.00, method: 'upi', payment_date: '2025-09-01' },
+  { payment_id: 15, booking_id: 15, guest_name: 'Jonas Weber', amount: 7800.00, method: 'credit_card', payment_date: '2025-09-14' },
+  { payment_id: 16, booking_id: 16, guest_name: 'Kavya Nair', amount: 20400.00, method: 'upi', payment_date: '2025-10-02' },
+  { payment_id: 17, booking_id: 17, guest_name: 'Kavya Nair', amount: 13500.00, method: 'upi', payment_date: '2025-11-11' },
+  { payment_id: 18, booking_id: 18, guest_name: "Liam O'Brien", amount: 27200.00, method: 'credit_card', payment_date: '2025-11-28' },
+  { payment_id: 19, booking_id: 19, guest_name: 'Maya Krishnan', amount: 44800.00, method: 'credit_card', payment_date: '2025-12-20' },
+  { payment_id: 20, booking_id: 20, guest_name: 'Noah Bergman', amount: 60000.00, method: 'credit_card', payment_date: '2025-12-24' },
+  { payment_id: 21, booking_id: 21, guest_name: 'Aarav Sharma', amount: 20400.00, method: 'upi', payment_date: '2026-01-05' },
+  { payment_id: 22, booking_id: 22, guest_name: 'Priya Menon', amount: 15300.00, method: 'credit_card', payment_date: '2026-01-19' },
+  { payment_id: 23, booking_id: 23, guest_name: 'Ben Carter', amount: 11700.00, method: 'credit_card', payment_date: '2026-02-14' },
+  { payment_id: 24, booking_id: 24, guest_name: 'Sofia Ahmed', amount: 20400.00, method: 'upi', payment_date: '2026-02-20' },
+  { payment_id: 25, booking_id: 25, guest_name: 'Elena Rossi', amount: 31600.00, method: 'credit_card', payment_date: '2026-03-01' },
+  { payment_id: 26, booking_id: 26, guest_name: 'Tom Nguyen', amount: 13500.00, method: 'credit_card', payment_date: '2026-03-10' },
+  { payment_id: 27, booking_id: 27, guest_name: 'Grace Okafor', amount: 15300.00, method: 'upi', payment_date: '2026-04-02' },
+  { payment_id: 28, booking_id: 28, guest_name: 'Yusuf Demir', amount: 10800.00, method: 'credit_card', payment_date: '2026-04-15' },
+  { payment_id: 29, booking_id: 29, guest_name: 'Maya Krishnan', amount: 28500.00, method: 'credit_card', payment_date: '2026-05-01' },
+  { payment_id: 30, booking_id: 30, guest_name: "Liam O'Brien", amount: 18000.00, method: 'upi', payment_date: '2026-05-20' },
 ];
 
 export const Payments = () => {
@@ -37,8 +43,8 @@ export const Payments = () => {
   const [bookings, setBookings] = useState([]);
 
   const [newPay, setNewPay] = useState({
-    booking_id: '1001',
-    amount: '1200.00',
+    booking_id: '1',
+    amount: '13500.00',
     method: 'credit_card',
     payment_date: new Date().toISOString().split('T')[0]
   });
@@ -84,18 +90,21 @@ export const Payments = () => {
       const res = await API.get('/bookings');
       if (res.data && res.data.length > 0) {
         setBookings(res.data);
+        if (res.data[0]) {
+          setNewPay(prev => ({ ...prev, booking_id: String(res.data[0].booking_id) }));
+        }
       } else {
         setBookings([
-          { booking_id: 1001, guest_name: 'Lord Henry Sterling (Coorg Stay)' },
-          { booking_id: 1002, guest_name: 'Lady Eleanor Vance (Ooty Stay)' },
-          { booking_id: 1003, guest_name: 'Dr. Siddharth Menon (Alleppey Stay)' },
+          { booking_id: 1, guest_name: 'Aarav Sharma (Coorg Stay)' },
+          { booking_id: 3, guest_name: 'Anita Desai (Ooty Stay)' },
+          { booking_id: 6, guest_name: 'Chloe Dubois (Alleppey Stay)' },
         ]);
       }
     } catch (err) {
       setBookings([
-        { booking_id: 1001, guest_name: 'Lord Henry Sterling (Coorg Stay)' },
-        { booking_id: 1002, guest_name: 'Lady Eleanor Vance (Ooty Stay)' },
-        { booking_id: 1003, guest_name: 'Dr. Siddharth Menon (Alleppey Stay)' },
+        { booking_id: 1, guest_name: 'Aarav Sharma (Coorg Stay)' },
+        { booking_id: 3, guest_name: 'Anita Desai (Ooty Stay)' },
+        { booking_id: 6, guest_name: 'Chloe Dubois (Alleppey Stay)' },
       ]);
     }
   };
@@ -129,13 +138,13 @@ export const Payments = () => {
   const getMethodBadge = (m) => {
     switch (m) {
       case 'credit_card':
-        return <span className="badge-gold text-[10px]">AMEX / Visa Infinite</span>;
+        return <span className="badge-gold text-[10px]">Card (Credit / Debit)</span>;
       case 'debit_card':
         return <span className="badge-sky text-[10px]">Debit Card</span>;
       case 'upi':
         return <span className="badge-emerald text-[10px]">UPI Instant</span>;
       case 'bank_transfer':
-        return <span className="px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30 text-[10px] font-semibold">Wire Transfer</span>;
+        return <span className="px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30 text-[10px] font-semibold">Bank Transfer</span>;
       default:
         return <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-[10px] font-semibold uppercase">{m}</span>;
     }
@@ -154,12 +163,12 @@ export const Payments = () => {
             Financial Transactions & Billing
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Reconcile guest deposits, room charges, and luxury settlement channels
+            Reconcile guest deposits, room charges, and luxury settlement channels across 30 transactions
           </p>
         </div>
         <button
           onClick={openModal}
-          className="btn-gold px-5 py-3 rounded-xl flex items-center gap-2 text-xs font-bold self-start"
+          className="btn-gold px-5 py-3 rounded-xl flex items-center gap-2 text-xs font-bold self-start shadow-xl"
         >
           <Plus className="w-4 h-4" />
           <span>Record Settlement</span>
@@ -173,11 +182,10 @@ export const Payments = () => {
           onChange={(e) => setMethodFilter(e.target.value)}
           className="luxury-input min-w-[220px] w-auto"
         >
-          <option value="">All Settlement Channels</option>
-          <option value="credit_card" style={{ background: '#0e1017' }}>Credit Card (AMEX / Visa)</option>
-          <option value="debit_card" style={{ background: '#0e1017' }}>Debit Card</option>
+          <option value="">All Settlement Channels (30 Payments)</option>
+          <option value="credit_card" style={{ background: '#0e1017' }}>Credit / Debit Card</option>
           <option value="upi" style={{ background: '#0e1017' }}>UPI Instant Settlement</option>
-          <option value="bank_transfer" style={{ background: '#0e1017' }}>Wire Transfer</option>
+          <option value="bank_transfer" style={{ background: '#0e1017' }}>Bank Wire Transfer</option>
           <option value="cash" style={{ background: '#0e1017' }}>Cash at Reception</option>
         </select>
       </div>
@@ -214,7 +222,7 @@ export const Payments = () => {
                       {p.guest_name || 'VIP Guest'}
                     </td>
                     <td className="px-6 py-4 font-mono font-bold text-[#f3e5ab] text-base">
-                      ₹{parseFloat(p.amount).toFixed(2)}
+                      ₹{parseFloat(p.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="px-6 py-4">
                       {getMethodBadge(p.method)}
@@ -282,7 +290,7 @@ export const Payments = () => {
                   value={newPay.amount}
                   onChange={(e) => setNewPay({ ...newPay, amount: e.target.value })}
                   className="luxury-input"
-                  placeholder="500.00"
+                  placeholder="13500.00"
                 />
               </div>
 

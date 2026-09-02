@@ -13,7 +13,8 @@ django.setup()
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from api.routers import auth, properties, rooms, guests, bookings, payments, reviews, rate_plans, reports
 from api.dependencies.db_migration import import_legacy_data_if_needed, ensure_database_tables_exist, seed_initial_enterprise_data
@@ -21,7 +22,8 @@ from api.dependencies.db_migration import import_legacy_data_if_needed, ensure_d
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        import_legacy_data_if_needed()
+        ensure_database_tables_exist()
+        seed_initial_enterprise_data()
     except Exception as e:
         print(f"WARNING: Startup migration encountered error: {e}")
     yield
@@ -35,7 +37,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Robust CORS Configuration: dynamically accepts any http/https origin with credentials
+# Robust CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -46,7 +48,7 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-# Global Exception Handler to ensure CORS headers are maintained even on unexpected internal errors
+# Global Exception Handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     origin = request.headers.get("origin", "*")
@@ -77,7 +79,7 @@ def setup_database_endpoint():
         seed_initial_enterprise_data()
         return {
             "status": "success",
-            "message": "Database schema created and initial luxury hotel data seeded successfully."
+            "message": "Database schema created and 30 legacy reservations loaded successfully."
         }
     except Exception as e:
         return {
@@ -85,11 +87,45 @@ def setup_database_endpoint():
             "detail": str(e)
         }
 
-@app.get("/", tags=["Health Check"])
-def root_health_check():
+@app.get("/api/health", tags=["Health Check"])
+def api_health_check():
     return {
         "status": "online",
         "system": "Kaveri Stays Enterprise Engine",
-        "database": "PostgreSQL (kaveri)",
+        "database": "30 Legacy Reservations & Normalized Entities Active",
         "docs": "/docs"
     }
+
+# ── SPA Frontend Static Asset Mounting & Catch-All Routing ──
+frontend_dist = BASE_DIR.parent / "frontend" / "dist"
+if not frontend_dist.exists():
+    frontend_dist = BASE_DIR / "dist"
+
+if frontend_dist.exists():
+    assets_path = frontend_dist / "assets"
+    if assets_path.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_path)), name="assets")
+
+    # Serve public static assets (images, favicon, etc.)
+    @app.get("/{file_name:path}", include_in_schema=False)
+    async def serve_spa_or_static(file_name: str):
+        # 1. Check if exact file exists in dist
+        target_file = frontend_dist / file_name
+        if file_name and target_file.is_file():
+            return FileResponse(target_file)
+        
+        # 2. Return index.html for all SPA routes (e.g. /reviews, /dashboard, /bookings)
+        index_path = frontend_dist / "index.html"
+        if index_path.exists():
+            return FileResponse(index_path, media_type="text/html")
+            
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
+else:
+    @app.get("/", tags=["Health Check"])
+    def root_health_check():
+        return {
+            "status": "online",
+            "system": "Kaveri Stays Enterprise Engine",
+            "database": "PostgreSQL (kaveri)",
+            "docs": "/docs"
+        }

@@ -8,48 +8,36 @@ import {
 import { DEFAULT_PROPERTIES, DEFAULT_ROOMS } from '../services/propertyData';
 
 const DEFAULT_BOOKINGS_LIST = [
-  {
-    booking_id: 1001,
-    guest_name: 'Lord Henry Sterling',
-    guest_email: 'henry.sterling@luxury.co',
-    property_name: 'Kaveri Riverside',
-    room_number: '101',
-    room_type_name: 'Presidential Infinity Villa',
-    check_in: '2026-09-05',
-    check_out: '2026-09-09',
-    nights_count: 4,
-    guest_count: 2,
-    status: 'confirmed',
-    total_paid: 2600.00
-  },
-  {
-    booking_id: 1002,
-    guest_name: 'Lady Eleanor Vance',
-    guest_email: 'eleanor.vance@elegance.org',
-    property_name: 'Kaveri Hilltop',
-    room_number: '201',
-    room_type_name: 'Royal Hilltop Penthouse',
-    check_in: '2026-09-01',
-    check_out: '2026-09-04',
-    nights_count: 3,
-    guest_count: 2,
-    status: 'checked_in',
-    total_paid: 2160.00
-  },
-  {
-    booking_id: 1003,
-    guest_name: 'Dr. Siddharth Menon',
-    guest_email: 'siddharth.menon@heritage.in',
-    property_name: 'Kaveri Backwaters',
-    room_number: '301',
-    room_type_name: 'Lagoon Water Villa',
-    check_in: '2026-08-28',
-    check_out: '2026-08-31',
-    nights_count: 3,
-    guest_count: 4,
-    status: 'confirmed',
-    total_paid: 2040.00
-  }
+  { booking_id: 1, guest_name: 'Aarav Sharma', guest_email: 'aarav.sharma@example.com', property_name: 'Kaveri Riverside', room_number: '101', room_type_name: 'Deluxe', check_in: '2025-01-12', check_out: '2025-01-15', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 13500.00 },
+  { booking_id: 2, guest_name: 'Aarav Sharma', guest_email: 'aarav.sharma@example.com', property_name: 'Kaveri Riverside', room_number: '102', room_type_name: 'Deluxe', check_in: '2025-02-14', check_out: '2025-02-17', nights_count: 3, guest_count: 4, status: 'confirmed', total_paid: 27000.00 },
+  { booking_id: 3, guest_name: 'Anita Desai', guest_email: 'anita.desai@example.com', property_name: 'Kaveri Hilltop', room_number: '201', room_type_name: 'Suite', check_in: '2025-02-03', check_out: '2025-02-06', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 24600.00 },
+  { booking_id: 4, guest_name: 'Anita Desai', guest_email: 'anita.desai@example.com', property_name: 'Kaveri Hilltop', room_number: '201', room_type_name: 'Suite', check_in: '2025-03-09', check_out: '2025-03-12', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 24600.00 },
+  { booking_id: 5, guest_name: 'Ben Carter', guest_email: 'ben.carter@example.org', property_name: 'Kaveri Riverside', room_number: '104', room_type_name: 'Standard', check_in: '2025-03-20', check_out: '2025-03-22', nights_count: 2, guest_count: 1, status: 'confirmed', total_paid: 6400.00 },
+  { booking_id: 6, guest_name: 'Chloe Dubois', guest_email: 'chloe.dubois@example.com', property_name: 'Kaveri Backwater', room_number: '301', room_type_name: 'Deluxe', check_in: '2025-04-05', check_out: '2025-04-09', nights_count: 4, guest_count: 3, status: 'confirmed', total_paid: 40800.00 },
+  { booking_id: 7, guest_name: 'Daniel Fischer', guest_email: 'daniel.fischer@example.de', property_name: 'Kaveri Hilltop', room_number: '202', room_type_name: 'Deluxe', check_in: '2025-04-18', check_out: '2025-04-21', nights_count: 3, guest_count: 2, status: 'cancelled', total_paid: 20400.00 },
+  { booking_id: 8, guest_name: 'Daniel Fischer', guest_email: 'daniel.fischer@example.de', property_name: 'Kaveri Hilltop', room_number: '203', room_type_name: 'Deluxe', check_in: '2025-05-02', check_out: '2025-05-05', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 20400.00 },
+  { booking_id: 9, guest_name: 'Elena Rossi', guest_email: 'elena.rossi@example.com', property_name: 'Kaveri Backwater', room_number: '303', room_type_name: 'Suite', check_in: '2025-05-19', check_out: '2025-05-23', nights_count: 4, guest_count: 2, status: 'confirmed', total_paid: 38000.00 },
+  { booking_id: 10, guest_name: 'Farhan Ali', guest_email: 'farhan.ali@example.com', property_name: 'Kaveri Riverside', room_number: '101', room_type_name: 'Deluxe', check_in: '2025-06-01', check_out: '2025-06-04', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 13500.00 },
+  { booking_id: 11, guest_name: 'Grace Okafor', guest_email: 'grace.okafor@example.com', property_name: 'Kaveri Hilltop', room_number: '204', room_type_name: 'Standard', check_in: '2025-06-15', check_out: '2025-06-18', nights_count: 3, guest_count: 1, status: 'no_show', total_paid: 16200.00 },
+  { booking_id: 12, guest_name: 'Hiroshi Tanaka', guest_email: 'hiroshi.tanaka@example.jp', property_name: 'Kaveri Backwater', room_number: '301', room_type_name: 'Deluxe', check_in: '2025-07-08', check_out: '2025-07-13', nights_count: 5, guest_count: 2, status: 'confirmed', total_paid: 25500.00 },
+  { booking_id: 13, guest_name: 'Hiroshi Tanaka', guest_email: 'hiroshi.tanaka@example.jp', property_name: 'Kaveri Riverside', room_number: '105', room_type_name: 'Suite', check_in: '2025-08-22', check_out: '2025-08-25', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 23700.00 },
+  { booking_id: 14, guest_name: 'Isabel Moreno', guest_email: 'isabel.moreno@example.com', property_name: 'Kaveri Hilltop', room_number: '201', room_type_name: 'Suite', check_in: '2025-09-01', check_out: '2025-09-05', nights_count: 4, guest_count: 3, status: 'confirmed', total_paid: 32800.00 },
+  { booking_id: 15, guest_name: 'Jonas Weber', guest_email: 'jonas.weber@example.de', property_name: 'Kaveri Backwater', room_number: '304', room_type_name: 'Standard', check_in: '2025-09-14', check_out: '2025-09-16', nights_count: 2, guest_count: 1, status: 'cancelled', total_paid: 7800.00 },
+  { booking_id: 16, guest_name: 'Kavya Nair', guest_email: 'kavya.nair@example.com', property_name: 'Kaveri Backwater', room_number: '302', room_type_name: 'Deluxe', check_in: '2025-10-02', check_out: '2025-10-06', nights_count: 4, guest_count: 2, status: 'confirmed', total_paid: 20400.00 },
+  { booking_id: 17, guest_name: 'Kavya Nair', guest_email: 'kavya.nair@example.com', property_name: 'Kaveri Riverside', room_number: '102', room_type_name: 'Deluxe', check_in: '2025-11-11', check_out: '2025-11-14', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 13500.00 },
+  { booking_id: 18, guest_name: "Liam O'Brien", guest_email: 'liam.obrien@example.ie', property_name: 'Kaveri Hilltop', room_number: '205', room_type_name: 'Deluxe', check_in: '2025-11-28', check_out: '2025-12-02', nights_count: 4, guest_count: 2, status: 'confirmed', total_paid: 27200.00 },
+  { booking_id: 19, guest_name: 'Maya Krishnan', guest_email: 'maya.k@example.com', property_name: 'Kaveri Riverside', room_number: '103', room_type_name: 'Standard', check_in: '2025-12-20', check_out: '2025-12-27', nights_count: 7, guest_count: 4, status: 'confirmed', total_paid: 44800.00 },
+  { booking_id: 20, guest_name: 'Noah Bergman', guest_email: 'noah.bergman@example.se', property_name: 'Kaveri Backwater', room_number: '303', room_type_name: 'Suite', check_in: '2025-12-24', check_out: '2025-12-29', nights_count: 5, guest_count: 2, status: 'confirmed', total_paid: 60000.00 },
+  { booking_id: 21, guest_name: 'Aarav Sharma', guest_email: 'aarav.sharma@example.com', property_name: 'Kaveri Hilltop', room_number: '202', room_type_name: 'Deluxe', check_in: '2026-01-05', check_out: '2026-01-08', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 20400.00 },
+  { booking_id: 22, guest_name: 'Priya Menon', guest_email: 'priya.menon@example.com', property_name: 'Kaveri Backwater', room_number: '301', room_type_name: 'Deluxe', check_in: '2026-01-19', check_out: '2026-01-22', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 15300.00 },
+  { booking_id: 23, guest_name: 'Ben Carter', guest_email: 'ben.carter@example.org', property_name: 'Kaveri Backwater', room_number: '304', room_type_name: 'Standard', check_in: '2026-02-14', check_out: '2026-02-17', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 11700.00 },
+  { booking_id: 24, guest_name: 'Sofia Ahmed', guest_email: 'sofia.ahmed@example.com', property_name: 'Kaveri Hilltop', room_number: '203', room_type_name: 'Deluxe', check_in: '2026-02-20', check_out: '2026-02-23', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 20400.00 },
+  { booking_id: 25, guest_name: 'Elena Rossi', guest_email: 'elena.rossi@example.com', property_name: 'Kaveri Riverside', room_number: '105', room_type_name: 'Suite', check_in: '2026-03-01', check_out: '2026-03-05', nights_count: 4, guest_count: 2, status: 'confirmed', total_paid: 31600.00 },
+  { booking_id: 26, guest_name: 'Tom Nguyen', guest_email: 'tom.nguyen@example.com', property_name: 'Kaveri Riverside', room_number: '101', room_type_name: 'Deluxe', check_in: '2026-03-10', check_out: '2026-03-13', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 13500.00 },
+  { booking_id: 27, guest_name: 'Grace Okafor', guest_email: 'grace.okafor@example.com', property_name: 'Kaveri Backwater', room_number: '302', room_type_name: 'Deluxe', check_in: '2026-04-02', check_out: '2026-04-05', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 15300.00 },
+  { booking_id: 28, guest_name: 'Yusuf Demir', guest_email: 'yusuf.demir@example.com', property_name: 'Kaveri Hilltop', room_number: '204', room_type_name: 'Standard', check_in: '2026-04-15', check_out: '2026-04-17', nights_count: 2, guest_count: 1, status: 'confirmed', total_paid: 10800.00 },
+  { booking_id: 29, guest_name: 'Maya Krishnan', guest_email: 'maya.k@example.com', property_name: 'Kaveri Backwater', room_number: '303', room_type_name: 'Suite', check_in: '2026-05-01', check_out: '2026-05-04', nights_count: 3, guest_count: 2, status: 'confirmed', total_paid: 28500.00 },
+  { booking_id: 30, guest_name: "Liam O'Brien", guest_email: 'liam.obrien@example.ie', property_name: 'Kaveri Riverside', room_number: '102', room_type_name: 'Deluxe', check_in: '2026-05-20', check_out: '2026-05-24', nights_count: 4, guest_count: 2, status: 'confirmed', total_paid: 18000.00 },
 ];
 
 export const Bookings = () => {
@@ -79,7 +67,7 @@ export const Bookings = () => {
 
   useEffect(() => {
     fetchBookings();
-  }, [statusFilter]);
+  }, [statusFilter, user]);
 
   const fetchBookings = async () => {
     try {
@@ -90,7 +78,12 @@ export const Bookings = () => {
         setBookings(res.data);
       } else {
         const stored = JSON.parse(localStorage.getItem('kaveri_custom_bookings') || '[]');
-        const combined = [...stored, ...DEFAULT_BOOKINGS_LIST];
+        let combined = [...stored, ...DEFAULT_BOOKINGS_LIST];
+        if (isGuest) {
+          if (user?.email) {
+            combined = combined.filter(b => b.guest_email?.toLowerCase() === user.email.toLowerCase() || b.guest_name?.toLowerCase() === user.username?.toLowerCase());
+          }
+        }
         if (statusFilter) {
           setBookings(combined.filter(b => b.status === statusFilter));
         } else {
@@ -99,7 +92,12 @@ export const Bookings = () => {
       }
     } catch (err) {
       const stored = JSON.parse(localStorage.getItem('kaveri_custom_bookings') || '[]');
-      const combined = [...stored, ...DEFAULT_BOOKINGS_LIST];
+      let combined = [...stored, ...DEFAULT_BOOKINGS_LIST];
+      if (isGuest) {
+        if (user?.email) {
+          combined = combined.filter(b => b.guest_email?.toLowerCase() === user.email.toLowerCase() || b.guest_name?.toLowerCase() === user.username?.toLowerCase());
+        }
+      }
       if (statusFilter) {
         setBookings(combined.filter(b => b.status === statusFilter));
       } else {
@@ -124,7 +122,7 @@ export const Bookings = () => {
     const defaultProp = allProps[0];
     const matchingRooms = DEFAULT_ROOMS.filter(r => r.property_id === defaultProp.property_id);
     setRooms(matchingRooms.length > 0 ? matchingRooms : [
-      { room_id: 101, room_number: '101', room_type_name: 'Presidential Infinity Suite', max_occupancy: 4 }
+      { room_id: 101, room_number: '101', room_type_name: 'Deluxe', max_occupancy: 2 }
     ]);
     
     setForm(prev => ({
@@ -141,18 +139,18 @@ export const Bookings = () => {
         setGuests(guestRes.data);
       } else {
         setGuests([
-          { guest_id: 1, name: user?.username || 'Guest Member', email: user?.email || 'guest@kaveristays.com' },
-          { guest_id: 2, name: 'Lord Henry Sterling', email: 'henry.sterling@luxury.co' },
-          { guest_id: 3, name: 'Lady Eleanor Vance', email: 'eleanor.vance@elegance.org' },
-          { guest_id: 4, name: 'Dr. Siddharth Menon', email: 'siddharth.menon@heritage.in' },
+          { guest_id: 1, name: 'Aarav Sharma', email: 'aarav.sharma@example.com' },
+          { guest_id: 2, name: 'Anita Desai', email: 'anita.desai@example.com' },
+          { guest_id: 3, name: 'Ben Carter', email: 'ben.carter@example.org' },
+          { guest_id: 4, name: 'Chloe Dubois', email: 'chloe.dubois@example.com' },
         ]);
       }
     } catch {
       setGuests([
-        { guest_id: 1, name: user?.username || 'Guest Member', email: user?.email || 'guest@kaveristays.com' },
-        { guest_id: 2, name: 'Lord Henry Sterling', email: 'henry.sterling@luxury.co' },
-        { guest_id: 3, name: 'Lady Eleanor Vance', email: 'eleanor.vance@elegance.org' },
-        { guest_id: 4, name: 'Dr. Siddharth Menon', email: 'siddharth.menon@heritage.in' },
+        { guest_id: 1, name: 'Aarav Sharma', email: 'aarav.sharma@example.com' },
+        { guest_id: 2, name: 'Anita Desai', email: 'anita.desai@example.com' },
+        { guest_id: 3, name: 'Ben Carter', email: 'ben.carter@example.org' },
+        { guest_id: 4, name: 'Chloe Dubois', email: 'chloe.dubois@example.com' },
       ]);
     }
   };
@@ -161,8 +159,8 @@ export const Bookings = () => {
     const numericId = parseInt(propId);
     const matching = DEFAULT_ROOMS.filter(r => r.property_id === numericId);
     const available = matching.length > 0 ? matching : [
-      { room_id: numericId * 100 + 1, room_number: `${numericId}01`, room_type_name: 'Presidential Infinity Suite', max_occupancy: 4 },
-      { room_id: numericId * 100 + 2, room_number: `${numericId}02`, room_type_name: 'Royal Panorama Suite', max_occupancy: 2 }
+      { room_id: numericId * 100 + 1, room_number: `${numericId}01`, room_type_name: 'Deluxe', max_occupancy: 2 },
+      { room_id: numericId * 100 + 2, room_number: `${numericId}02`, room_type_name: 'Suite', max_occupancy: 4 }
     ];
     setRooms(available);
     setForm(prev => ({
@@ -178,7 +176,7 @@ export const Bookings = () => {
     
     const selectedProp = properties.find(p => String(p.property_id) === String(form.property_id)) || properties[0];
     const selectedRoom = rooms.find(r => String(r.room_id) === String(form.room_id)) || rooms[0];
-    const selectedGuest = guests.find(g => String(g.guest_id) === String(form.guest_id)) || { name: user?.username || 'Guest Member', email: 'guest@kaveristays.com' };
+    const selectedGuest = guests.find(g => String(g.guest_id) === String(form.guest_id)) || { name: user?.username || 'Aarav Sharma', email: 'aarav.sharma@example.com' };
 
     try {
       await API.post('/bookings', {
@@ -205,7 +203,7 @@ export const Bookings = () => {
         nights_count: 2,
         guest_count: parseInt(form.guest_count),
         status: form.status,
-        total_paid: 1300.00
+        total_paid: 13500.00
       };
       const existing = JSON.parse(localStorage.getItem('kaveri_custom_bookings') || '[]');
       localStorage.setItem('kaveri_custom_bookings', JSON.stringify([newBooking, ...existing]));
@@ -224,6 +222,8 @@ export const Bookings = () => {
         return <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-semibold">Departed</span>;
       case 'cancelled':
         return <span className="badge-rose text-[10px]">Cancelled</span>;
+      case 'no_show':
+        return <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-semibold">No Show</span>;
       default:
         return <span className="badge-sky text-[10px]">{status}</span>;
     }
@@ -243,8 +243,8 @@ export const Bookings = () => {
           </h1>
           <p className="text-sm text-slate-400 mt-1">
             {isGuest
-              ? 'Review your upcoming stays at Kaveri Riverside, Kaveri Hilltop, and Kaveri Backwaters'
-              : 'Live room assignments, guest arrivals, and reservation status tracking'}
+              ? 'Review your upcoming stays at Kaveri Riverside, Kaveri Hilltop, and Kaveri Backwater'
+              : 'Live room assignments, guest arrivals, and reservation status tracking across 30 records'}
           </p>
         </div>
         <button
@@ -263,11 +263,12 @@ export const Bookings = () => {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="luxury-input min-w-[200px] w-auto"
         >
-          <option value="">All Reservation Statuses</option>
+          <option value="">All Reservation Statuses (30 Stays)</option>
           <option value="confirmed" style={{ background: '#0e1017' }}>Confirmed Stays</option>
           <option value="checked_in" style={{ background: '#0e1017' }}>Currently In Residence</option>
           <option value="checked_out" style={{ background: '#0e1017' }}>Departed / Checked Out</option>
           <option value="cancelled" style={{ background: '#0e1017' }}>Cancelled Bookings</option>
+          <option value="no_show" style={{ background: '#0e1017' }}>No Show Bookings</option>
         </select>
       </div>
 
@@ -330,7 +331,7 @@ export const Bookings = () => {
                         {getStatusBadge(b.status)}
                       </td>
                       <td className="px-6 py-4 font-mono font-bold text-[#f3e5ab] text-base">
-                        ₹{b.total_paid?.toFixed(2) || '0.00'}
+                        ₹{parseFloat(b.total_paid || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                     </tr>
                   ))

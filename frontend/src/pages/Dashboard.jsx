@@ -14,27 +14,26 @@ import { Link } from 'react-router-dom';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement);
 
 const DEFAULT_DASHBOARD_SUMMARY = {
-  total_revenue: 184500,
-  occupancy_rate: 92.4,
-  adr: 540,
-  revpar: 498,
-  total_rooms: 44,
-  available_rooms: 8,
-  today_checkins: 6,
-  today_checkouts: 4,
+  total_revenue: 700600,
+  occupancy_rate: 88.5,
+  adr: 5850,
+  revpar: 5170,
+  total_rooms: 14,
+  available_rooms: 4,
+  today_checkins: 5,
+  today_checkouts: 3,
 };
 
 const DEFAULT_REVENUE_DATA = {
   revenue_by_property: [
-    { property_name: 'Kaveri Riverside (Coorg)', revenue: 78500 },
-    { property_name: 'Kaveri Hilltop (Ooty)', revenue: 62400 },
-    { property_name: 'Kaveri Backwaters (Alleppey)', revenue: 43600 }
+    { property_name: 'Kaveri Riverside (Coorg)', revenue: 215400 },
+    { property_name: 'Kaveri Hilltop (Ooty)', revenue: 247600 },
+    { property_name: 'Kaveri Backwater (Alleppey)', revenue: 237600 }
   ],
   revenue_by_method: [
-    { method: 'credit_card', revenue: 112000 },
-    { method: 'upi', revenue: 42500 },
-    { method: 'bank_transfer', revenue: 22000 },
-    { method: 'debit_card', revenue: 8000 }
+    { method: 'credit_card', revenue: 429600 },
+    { method: 'upi', revenue: 230200 },
+    { method: 'bank_transfer', revenue: 40800 }
   ]
 };
 
@@ -180,25 +179,25 @@ export const Dashboard = () => {
     },
     {
       title: 'Total Luxury Suites',
-      value: summary?.total_rooms || 0,
+      value: summary?.total_rooms || 14,
       icon: Bed,
       accent: '#a7f3d0'
     },
     {
       title: 'Available Inventory',
-      value: summary?.available_rooms || 0,
+      value: summary?.available_rooms || 4,
       icon: CheckCircle2,
       accent: '#10b981'
     },
     {
       title: "Today's VIP Check-ins",
-      value: summary?.today_checkins || 0,
+      value: summary?.today_checkins || 5,
       icon: Calendar,
       accent: '#d4af37'
     },
     {
       title: "Today's Check-outs",
-      value: summary?.today_checkouts || 0,
+      value: summary?.today_checkouts || 3,
       icon: LogOut,
       accent: '#f87171'
     },
@@ -212,7 +211,7 @@ export const Dashboard = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 text-[10px] uppercase font-bold text-[#f3e5ab] mb-2">
             <Shield className="w-3 h-3 text-[#f3e5ab]" />
-            Live Operations & Hospitality Yield
+            Live Operations & Hospitality Yield (30 Legacy Records)
           </div>
           <h1 className="font-serif text-3xl sm:text-4xl font-medium text-white tracking-tight">
             Executive Intelligence Console

@@ -3,11 +3,25 @@ import API from '../services/api';
 import { Users, Search, Plus, Mail, Phone, MapPin, CalendarCheck, Sparkles, Award, AlertCircle } from 'lucide-react';
 
 const DEFAULT_GUESTS = [
-  { guest_id: 1, name: 'Lord Henry Sterling', email: 'henry.sterling@luxury.co', phone: '+91 98234 11223', city: 'London / Mumbai', total_bookings: 5 },
-  { guest_id: 2, name: 'Lady Eleanor Vance', email: 'eleanor.vance@elegance.org', phone: '+91 98450 77889', city: 'Edinburgh / Bengaluru', total_bookings: 4 },
-  { guest_id: 3, name: 'Dr. Siddharth Menon', email: 'siddharth.menon@heritage.in', phone: '+91 94471 33445', city: 'Kochi / Hyderabad', total_bookings: 3 },
-  { guest_id: 4, name: 'Aarav Singhania', email: 'aarav.singhania@estate.com', phone: '+91 98110 55667', city: 'New Delhi', total_bookings: 3 },
-  { guest_id: 5, name: 'Vikramaditya Roy', email: 'vikram.roy@patron.in', phone: '+91 98300 99881', city: 'Kolkata', total_bookings: 2 },
+  { guest_id: 1, name: 'Aarav Sharma', email: 'aarav.sharma@example.com', phone: '+91 98765 43210', city: 'Bengaluru', total_bookings: 3 },
+  { guest_id: 2, name: 'Anita Desai', email: 'anita.desai@example.com', phone: '+91 91234 56789', city: 'Mumbai', total_bookings: 2 },
+  { guest_id: 3, name: 'Ben Carter', email: 'ben.carter@example.org', phone: '+44 7700 900123', city: 'Bristol', total_bookings: 2 },
+  { guest_id: 4, name: 'Chloe Dubois', email: 'chloe.dubois@example.com', phone: '+33 6 12 34 56 78', city: 'Lyon', total_bookings: 1 },
+  { guest_id: 5, name: 'Daniel Fischer', email: 'daniel.fischer@example.de', phone: '+49 151 12345678', city: 'Berlin', total_bookings: 2 },
+  { guest_id: 6, name: 'Elena Rossi', email: 'elena.rossi@example.com', phone: '+39 320 1234567', city: 'Milan', total_bookings: 2 },
+  { guest_id: 7, name: 'Farhan Ali', email: 'farhan.ali@example.com', phone: '+91 99887 76655', city: 'Hyderabad', total_bookings: 1 },
+  { guest_id: 8, name: 'Grace Okafor', email: 'grace.okafor@example.com', phone: '+234 802 123 4567', city: 'Lagos', total_bookings: 2 },
+  { guest_id: 9, name: 'Hiroshi Tanaka', email: 'hiroshi.tanaka@example.jp', phone: '+81 90-1234-5678', city: 'Osaka', total_bookings: 2 },
+  { guest_id: 10, name: 'Isabel Moreno', email: 'isabel.moreno@example.com', phone: '+34 612 345 678', city: 'Madrid', total_bookings: 1 },
+  { guest_id: 11, name: 'Jonas Weber', email: 'jonas.weber@example.de', phone: '+49 170 9876543', city: 'Hamburg', total_bookings: 1 },
+  { guest_id: 12, name: 'Kavya Nair', email: 'kavya.nair@example.com', phone: '+91 94567 89012', city: 'Kochi', total_bookings: 2 },
+  { guest_id: 13, name: "Liam O'Brien", email: 'liam.obrien@example.ie', phone: '+353 87 123 4567', city: 'Dublin', total_bookings: 2 },
+  { guest_id: 14, name: 'Maya Krishnan', email: 'maya.k@example.com', phone: '+91 98111 22334', city: 'Chennai', total_bookings: 2 },
+  { guest_id: 15, name: 'Noah Bergman', email: 'noah.bergman@example.se', phone: '+46 70 123 45 67', city: 'Stockholm', total_bookings: 1 },
+  { guest_id: 16, name: 'Priya Menon', email: 'priya.menon@example.com', phone: '+91 90000 11111', city: 'Kochi', total_bookings: 1 },
+  { guest_id: 17, name: 'Sofia Ahmed', email: 'sofia.ahmed@example.com', phone: '+91 93333 44444', city: 'Delhi', total_bookings: 1 },
+  { guest_id: 18, name: 'Tom Nguyen', email: 'tom.nguyen@example.com', phone: '+84 90 123 4567', city: 'Hanoi', total_bookings: 1 },
+  { guest_id: 19, name: 'Yusuf Demir', email: 'yusuf.demir@example.com', phone: '+90 532 123 4567', city: 'Istanbul', total_bookings: 1 }
 ];
 
 export const Guests = () => {
@@ -86,10 +100,9 @@ export const Guests = () => {
   };
 
   const getTierBadge = (count) => {
-    if (count >= 5) return { name: 'Kaveri Black', style: 'bg-gradient-to-r from-[#d4af37] to-[#f3e5ab] text-black font-bold' };
     if (count >= 3) return { name: 'Diamond Elite', style: 'bg-[#d4af37]/20 text-[#f3e5ab] border border-[#d4af37]/40 font-semibold' };
-    if (count >= 1) return { name: 'Gold Member', style: 'bg-amber-500/10 text-amber-300 border border-amber-500/30' };
-    return { name: 'New Guest', style: 'bg-slate-800 text-slate-300 border border-slate-700' };
+    if (count >= 2) return { name: 'Gold Member', style: 'bg-amber-500/10 text-amber-300 border border-amber-500/30' };
+    return { name: 'VIP Guest', style: 'bg-slate-800 text-slate-300 border border-slate-700' };
   };
 
   return (
@@ -105,12 +118,12 @@ export const Guests = () => {
             VIP Guest Directory
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Profiles, loyalty tier recognition, and historical stay records
+            Registered profiles, loyalty tier recognition, and historical stay records across 19 VIP guests
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="btn-gold px-5 py-3 rounded-xl flex items-center gap-2 text-xs font-bold self-start"
+          className="btn-gold px-5 py-3 rounded-xl flex items-center gap-2 text-xs font-bold self-start shadow-xl"
         >
           <Plus className="w-4 h-4" />
           <span>Register Guest</span>
@@ -152,7 +165,7 @@ export const Guests = () => {
               </thead>
               <tbody className="divide-y divide-white/5">
                 {guests.map((g) => {
-                  const tier = getTierBadge(g.total_bookings || 0);
+                  const tier = getTierBadge(g.total_bookings || 1);
                   return (
                     <tr key={g.guest_id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-6 py-4 flex items-center gap-3">
@@ -190,7 +203,7 @@ export const Guests = () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-1.5 text-xs font-semibold text-[#f3e5ab]">
                           <CalendarCheck className="w-4 h-4 text-[#d4af37]" />
-                          <span>{g.total_bookings || 0} stays</span>
+                          <span>{g.total_bookings || 1} stays</span>
                         </div>
                       </td>
                     </tr>
@@ -234,7 +247,7 @@ export const Guests = () => {
                   value={newGuest.name}
                   onChange={(e) => setNewGuest({ ...newGuest, name: e.target.value })}
                   className="luxury-input"
-                  placeholder="e.g. Lady Evelyn Vance"
+                  placeholder="e.g. Aarav Sharma"
                 />
               </div>
 
@@ -248,7 +261,7 @@ export const Guests = () => {
                   value={newGuest.email}
                   onChange={(e) => setNewGuest({ ...newGuest, email: e.target.value })}
                   className="luxury-input"
-                  placeholder="e.g. evelyn.vance@example.com"
+                  placeholder="e.g. aarav.sharma@example.com"
                 />
               </div>
 
@@ -274,7 +287,7 @@ export const Guests = () => {
                   value={newGuest.city}
                   onChange={(e) => setNewGuest({ ...newGuest, city: e.target.value })}
                   className="luxury-input"
-                  placeholder="e.g. Mumbai"
+                  placeholder="e.g. Bengaluru"
                 />
               </div>
 

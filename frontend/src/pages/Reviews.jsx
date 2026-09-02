@@ -5,30 +5,57 @@ import { Star, Plus, MessageSquare, Building2, User, AlertCircle, Sparkles, Quot
 const DEFAULT_REVIEWS = [
   {
     review_id: 1,
-    booking_id: 1001,
-    guest_name: 'Lord Henry Sterling',
+    booking_id: 1,
+    guest_name: 'Aarav Sharma',
     property_name: 'Kaveri Riverside (Coorg)',
     rating: 5,
-    comment: 'The riverside infinity pool overlooking the misty coffee plantations of Coorg was pure magic. The private butler service was second to none.',
-    review_date: '2026-08-25'
+    comment: 'Late check-in requested. Exceptional riverside luxury and peaceful serene nature along the Coorg riverbanks.',
+    review_date: '2025-01-15'
   },
   {
     review_id: 2,
-    booking_id: 1002,
-    guest_name: 'Lady Eleanor Vance',
-    property_name: 'Kaveri Hilltop (Ooty)',
+    booking_id: 2,
+    guest_name: 'Aarav Sharma',
+    property_name: 'Kaveri Riverside (Coorg)',
     rating: 5,
-    comment: 'Perched above the clouds with panoramic sunset views over the emerald tea estates. The heated cliffside infinity pool and fireplace suite were sensational.',
-    review_date: '2026-08-20'
+    comment: 'Anniversary celebration with special flowers arrangement. The hospitality and private pool suite exceeded all expectations.',
+    review_date: '2025-02-17'
   },
   {
     review_id: 3,
-    booking_id: 1003,
-    guest_name: 'Dr. Siddharth Menon',
-    property_name: 'Kaveri Backwaters (Alleppey)',
+    booking_id: 3,
+    guest_name: 'Anita Desai',
+    property_name: 'Kaveri Hilltop (Ooty)',
     rating: 5,
-    comment: 'Serene luxury on the Kerala backwaters. Waking up to the calm water lagoon and dipping into our private plunge pool was an unforgettable experience.',
-    review_date: '2026-08-15'
+    comment: 'High altitude tranquility with breathtaking panoramic views across Ooty tea estates. Heated infinity pool was magnificent.',
+    review_date: '2025-02-06'
+  },
+  {
+    review_id: 4,
+    booking_id: 6,
+    guest_name: 'Chloe Dubois',
+    property_name: 'Kaveri Backwater (Alleppey)',
+    rating: 5,
+    comment: 'Two rooms, one bill. Picturesque Alleppey backwaters and memorable traditional houseboat dining under the stars.',
+    review_date: '2025-04-09'
+  },
+  {
+    review_id: 5,
+    booking_id: 21,
+    guest_name: 'Aarav Sharma',
+    property_name: 'Kaveri Hilltop (Ooty)',
+    rating: 5,
+    comment: 'Third stay with Kaveri Collection. Consistently unrivaled service, regal comfort, and exquisite culinary craftsmanship.',
+    review_date: '2026-01-08'
+  },
+  {
+    review_id: 6,
+    booking_id: 25,
+    guest_name: 'Elena Rossi',
+    property_name: 'Kaveri Riverside (Coorg)',
+    rating: 5,
+    comment: 'Returning guest and once again thoroughly impressed with the luxury suite and peaceful plantation walks.',
+    review_date: '2026-03-05'
   }
 ];
 
@@ -39,7 +66,7 @@ export const Reviews = () => {
   const [bookings, setBookings] = useState([]);
 
   const [newRev, setNewRev] = useState({
-    booking_id: '1001',
+    booking_id: '1',
     rating: 5,
     comment: '',
     review_date: new Date().toISOString().split('T')[0]
@@ -74,18 +101,21 @@ export const Reviews = () => {
       const res = await API.get('/bookings');
       if (res.data && res.data.length > 0) {
         setBookings(res.data);
+        if (res.data[0]) {
+          setNewRev(prev => ({ ...prev, booking_id: String(res.data[0].booking_id) }));
+        }
       } else {
         setBookings([
-          { booking_id: 1001, guest_name: 'Guest Member', property_name: 'Kaveri Riverside (Coorg)' },
-          { booking_id: 1002, guest_name: 'Guest Member', property_name: 'Kaveri Hilltop (Ooty)' },
-          { booking_id: 1003, guest_name: 'Guest Member', property_name: 'Kaveri Backwaters (Alleppey)' },
+          { booking_id: 1, guest_name: 'Aarav Sharma', property_name: 'Kaveri Riverside (Coorg)' },
+          { booking_id: 3, guest_name: 'Anita Desai', property_name: 'Kaveri Hilltop (Ooty)' },
+          { booking_id: 6, guest_name: 'Chloe Dubois', property_name: 'Kaveri Backwater (Alleppey)' },
         ]);
       }
     } catch (err) {
       setBookings([
-        { booking_id: 1001, guest_name: 'Guest Member', property_name: 'Kaveri Riverside (Coorg)' },
-        { booking_id: 1002, guest_name: 'Guest Member', property_name: 'Kaveri Hilltop (Ooty)' },
-        { booking_id: 1003, guest_name: 'Guest Member', property_name: 'Kaveri Backwaters (Alleppey)' },
+        { booking_id: 1, guest_name: 'Aarav Sharma', property_name: 'Kaveri Riverside (Coorg)' },
+        { booking_id: 3, guest_name: 'Anita Desai', property_name: 'Kaveri Hilltop (Ooty)' },
+        { booking_id: 6, guest_name: 'Chloe Dubois', property_name: 'Kaveri Backwater (Alleppey)' },
       ]);
     }
   };
@@ -98,7 +128,7 @@ export const Reviews = () => {
     const reviewObj = {
       review_id: Date.now() % 10000,
       booking_id: parseInt(newRev.booking_id),
-      guest_name: targetBooking?.guest_name || 'Guest Member',
+      guest_name: targetBooking?.guest_name || 'VIP Guest',
       property_name: targetBooking?.property_name || 'Kaveri Riverside (Coorg)',
       rating: parseInt(newRev.rating),
       comment: newRev.comment,
@@ -133,10 +163,10 @@ export const Reviews = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 text-[10px] uppercase font-bold text-[#f3e5ab] mb-2">
             <Sparkles className="w-3 h-3 text-[#d4af37]" />
-            Guest Experiences & Accolades
+            Guest Experiences & Reviews
           </div>
           <h1 className="font-serif text-3xl font-medium text-white tracking-tight">
-            Guest Accolades & Testimonials
+            Guest Reviews & Testimonials
           </h1>
           <p className="text-sm text-slate-400 mt-1">
             Reflections and ratings from stays at Coorg, Ooty, and Alleppey
@@ -144,10 +174,11 @@ export const Reviews = () => {
         </div>
         <button
           onClick={openModal}
-          className="btn-gold px-5 py-3 rounded-xl flex items-center gap-2 text-xs font-bold self-start"
+          className="btn-gold px-5 py-3 rounded-xl flex items-center gap-2 text-xs font-bold self-start shadow-xl"
+          aria-label="Write a review"
         >
           <Plus className="w-4 h-4" />
-          <span>Write Accolade</span>
+          <span>Write Review</span>
         </button>
       </div>
 
@@ -203,10 +234,11 @@ export const Reviews = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
           <div className="luxury-card rounded-3xl w-full max-w-md p-8 border border-[#d4af37]/30 space-y-5 animate-fadeInUp shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#d4af37]/15 pb-4">
-              <h3 className="font-serif text-2xl font-medium text-white">Share Your Accolade</h3>
+              <h3 className="font-serif text-2xl font-medium text-white">Share Your Review</h3>
               <button
                 onClick={() => setShowModal(false)}
                 className="text-slate-400 hover:text-white text-lg"
+                aria-label="Close modal"
               >
                 &times;
               </button>
@@ -232,7 +264,7 @@ export const Reviews = () => {
                 >
                   {bookings.map(b => (
                     <option key={b.booking_id} value={b.booking_id} style={{ background: '#0e1017' }}>
-                      Booking #{b.booking_id} &bull; {b.property_name}
+                      Booking #{b.booking_id} &bull; {b.property_name} ({b.guest_name})
                     </option>
                   ))}
                 </select>
@@ -280,7 +312,7 @@ export const Reviews = () => {
                   type="submit"
                   className="btn-gold flex-1 py-3 rounded-xl text-xs font-bold"
                 >
-                  Publish Accolade
+                  Publish Review
                 </button>
               </div>
             </form>

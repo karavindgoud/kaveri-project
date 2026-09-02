@@ -4,7 +4,7 @@ export const DEFAULT_PROPERTIES = [
     property_id: 1,
     name: 'Kaveri Riverside',
     city: 'Coorg',
-    stars: 5,
+    stars: 4,
     total_rooms: 18,
     image: '/resort_coorg.jpg',
     description: 'Secluded riverside sanctuary along the Kaveri river amidst lush rainforests and misty coffee estates with private infinity pool.'
@@ -20,9 +20,9 @@ export const DEFAULT_PROPERTIES = [
   },
   {
     property_id: 3,
-    name: 'Kaveri Backwaters',
+    name: 'Kaveri Backwater',
     city: 'Alleppey',
-    stars: 5,
+    stars: 4,
     total_rooms: 12,
     image: '/resort_alleppey.jpg',
     description: 'Tranquil waterfront estate along serene Kerala lagoons with private plunge pools, traditional wooden architecture, and sunset houseboat docks.'
@@ -30,31 +30,37 @@ export const DEFAULT_PROPERTIES = [
 ];
 
 export const DEFAULT_ROOM_TYPES = [
-  { room_type_id: 1, type_name: 'Presidential Infinity Villa', max_occupancy: 4, base_rate: 650 },
-  { room_type_id: 2, type_name: 'Royal Panorama Suite', max_occupancy: 2, base_rate: 450 },
-  { room_type_id: 3, type_name: 'Deluxe Heritage Chalet', max_occupancy: 3, base_rate: 320 },
+  { room_type_id: 1, type_name: 'Deluxe', max_occupancy: 4, base_rate: 4500 },
+  { room_type_id: 2, type_name: 'Suite', max_occupancy: 4, base_rate: 8200 },
+  { room_type_id: 3, type_name: 'Standard', max_occupancy: 4, base_rate: 3200 },
 ];
 
 export const DEFAULT_ROOMS = [
   // Kaveri Riverside (Coorg)
-  { room_id: 101, property_id: 1, property_name: 'Kaveri Riverside', room_number: '101', room_type_name: 'Presidential Infinity Villa', max_occupancy: 4, rate: 650 },
-  { room_id: 102, property_id: 1, property_name: 'Kaveri Riverside', room_number: '102', room_type_name: 'Royal Panorama Suite', max_occupancy: 2, rate: 450 },
-  { room_id: 103, property_id: 1, property_name: 'Kaveri Riverside', room_number: '103', room_type_name: 'Deluxe Heritage Chalet', max_occupancy: 3, rate: 320 },
+  { room_id: 101, property_id: 1, property_name: 'Kaveri Riverside', room_number: '101', room_type_name: 'Deluxe', max_occupancy: 2, rate: 4500 },
+  { room_id: 102, property_id: 1, property_name: 'Kaveri Riverside', room_number: '102', room_type_name: 'Deluxe', max_occupancy: 4, rate: 4500 },
+  { room_id: 103, property_id: 1, property_name: 'Kaveri Riverside', room_number: '103', room_type_name: 'Standard', max_occupancy: 4, rate: 3200 },
+  { room_id: 104, property_id: 1, property_name: 'Kaveri Riverside', room_number: '104', room_type_name: 'Standard', max_occupancy: 2, rate: 3200 },
+  { room_id: 105, property_id: 1, property_name: 'Kaveri Riverside', room_number: '105', room_type_name: 'Suite', max_occupancy: 2, rate: 7900 },
 
   // Kaveri Hilltop (Ooty)
-  { room_id: 201, property_id: 2, property_name: 'Kaveri Hilltop', room_number: '201', room_type_name: 'Presidential Infinity Villa', max_occupancy: 4, rate: 720 },
-  { room_id: 202, property_id: 2, property_name: 'Kaveri Hilltop', room_number: '202', room_type_name: 'Royal Panorama Suite', max_occupancy: 2, rate: 480 },
-  { room_id: 203, property_id: 2, property_name: 'Kaveri Hilltop', room_number: '203', room_type_name: 'Deluxe Heritage Chalet', max_occupancy: 3, rate: 380 },
+  { room_id: 201, property_id: 2, property_name: 'Kaveri Hilltop', room_number: '201', room_type_name: 'Suite', max_occupancy: 3, rate: 8200 },
+  { room_id: 202, property_id: 2, property_name: 'Kaveri Hilltop', room_number: '202', room_type_name: 'Deluxe', max_occupancy: 2, rate: 6800 },
+  { room_id: 203, property_id: 2, property_name: 'Kaveri Hilltop', room_number: '203', room_type_name: 'Deluxe', max_occupancy: 2, rate: 6800 },
+  { room_id: 204, property_id: 2, property_name: 'Kaveri Hilltop', room_number: '204', room_type_name: 'Standard', max_occupancy: 1, rate: 5400 },
+  { room_id: 205, property_id: 2, property_name: 'Kaveri Hilltop', room_number: '205', room_type_name: 'Deluxe', max_occupancy: 2, rate: 6800 },
 
-  // Kaveri Backwaters (Alleppey)
-  { room_id: 301, property_id: 3, property_name: 'Kaveri Backwaters', room_number: '301', room_type_name: 'Presidential Infinity Villa', max_occupancy: 4, rate: 680 },
-  { room_id: 302, property_id: 3, property_name: 'Kaveri Backwaters', room_number: '302', room_type_name: 'Royal Panorama Suite', max_occupancy: 2, rate: 450 },
-  { room_id: 303, property_id: 3, property_name: 'Kaveri Backwaters', room_number: '303', room_type_name: 'Deluxe Heritage Chalet', max_occupancy: 3, rate: 320 },
+  // Kaveri Backwater (Alleppey)
+  { room_id: 301, property_id: 3, property_name: 'Kaveri Backwater', room_number: '301', room_type_name: 'Deluxe', max_occupancy: 3, rate: 5100 },
+  { room_id: 302, property_id: 3, property_name: 'Kaveri Backwater', room_number: '302', room_type_name: 'Deluxe', max_occupancy: 2, rate: 5100 },
+  { room_id: 303, property_id: 3, property_name: 'Kaveri Backwater', room_number: '303', room_type_name: 'Suite', max_occupancy: 2, rate: 9500 },
+  { room_id: 304, property_id: 3, property_name: 'Kaveri Backwater', room_number: '304', room_type_name: 'Standard', max_occupancy: 2, rate: 3900 },
 ];
 
 export const PROPERTY_IMAGES_MAP = {
   'Kaveri Riverside': '/resort_coorg.jpg',
   'Kaveri Hilltop': '/resort_ooty.jpg',
+  'Kaveri Backwater': '/resort_alleppey.jpg',
   'Kaveri Backwaters': '/resort_alleppey.jpg',
 };
 

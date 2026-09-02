@@ -6,6 +6,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
+from guests.models import Guest
+
 SECRET_KEY = "kaveri-stays-enterprise-jwt-secret-key-change-in-prod"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
@@ -24,7 +26,7 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return hash_password(plain_password) == hashed_password
 
-# Pre-seeded enterprise users for immediate demo & RBAC validation
+# Pre-seeded enterprise staff users for immediate demo & RBAC validation
 DEMO_USERS = {
     "admin": {
         "username": "admin",
@@ -45,13 +47,54 @@ DEMO_USERS = {
         "email": "reception@kaveristays.com",
     },
     "guest": {
-        "username": "guest",
+        "username": "Aarav Sharma",
         "password_hash": hash_password("guest123"),
         "role": "Guest",
-        "email": "john.doe@example.com",
+        "email": "aarav.sharma@example.com",
         "guest_id": 1,
     }
 }
+
+def find_user_by_credential(credential: str):
+    """Lookup user by username, email, or guest name from database and demo roster."""
+    if not credential:
+        return None
+    cred_norm = credential.strip().lower()
+    
+    # 1. Check fixed demo users
+    if cred_norm in DEMO_USERS:
+        return DEMO_USERS[cred_norm]
+    
+    # 2. Check by guest email in database
+    try:
+        guest_by_email = Guest.objects.filter(email__iexact=cred_norm).first()
+        if guest_by_email:
+            return {
+                "username": guest_by_email.name,
+                "password_hash": hash_password("guest123"),
+                "role": "Guest",
+                "email": guest_by_email.email,
+                "guest_id": guest_by_email.guest_id
+            }
+        
+        # 3. Check by guest name in database
+        guest_by_name = Guest.objects.filter(name__iexact=cred_norm).first()
+        if not guest_by_name:
+            # Check partial name match
+            guest_by_name = Guest.objects.filter(name__icontains=cred_norm).first()
+            
+        if guest_by_name:
+            return {
+                "username": guest_by_name.name,
+                "password_hash": hash_password("guest123"),
+                "role": "Guest",
+                "email": guest_by_name.email,
+                "guest_id": guest_by_name.guest_id
+            }
+    except Exception:
+        pass
+
+    return None
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
@@ -67,7 +110,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> TokenData:
         headers={"WWW-Authenticate": "Bearer"},
     )
     if token and token.startswith("kaveri_demo_token_"):
-        return TokenData(username="admin", role="Admin", email="admin@kaveristays.com", guest_id=1)
+        return TokenData(username="Aarav Sharma", role="Guest", email="aarav.sharma@example.com", guest_id=1)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: Optional[str] = payload.get("sub")

@@ -27,7 +27,7 @@ export const DashboardLayout = ({ children }) => {
     ? [
         { name: 'The Collection', path: '/dashboard', icon: Compass },
         { name: 'My Reservations', path: '/bookings', icon: CalendarCheck },
-        { name: 'My Reviews & Accolades', path: '/reviews', icon: Star },
+        { name: 'My Reviews', path: '/reviews', icon: Star },
       ]
     : [
         { name: 'Executive Overview', path: '/dashboard', icon: Hotel },
@@ -36,7 +36,7 @@ export const DashboardLayout = ({ children }) => {
         { name: 'VIP Guest Directory', path: '/guests', icon: Users },
         { name: 'Reservations Ledger', path: '/bookings', icon: CalendarCheck },
         { name: 'Financial Records', path: '/payments', icon: CreditCard },
-        { name: 'Accolades & Reviews', path: '/reviews', icon: Star },
+        { name: 'Guest Reviews', path: '/reviews', icon: Star },
         { name: 'Analytics & Reports', path: '/reports', icon: BarChart3 },
       ];
 
@@ -98,6 +98,7 @@ export const DashboardLayout = ({ children }) => {
           <button
             onClick={() => setMobileOpen(false)}
             className="lg:hidden text-slate-400 hover:text-white"
+            aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
           </button>
@@ -171,6 +172,7 @@ export const DashboardLayout = ({ children }) => {
             onClick={handleLogout}
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#f3e5ab] hover:text-white hover:bg-white/10 border border-transparent hover:border-white/20 transition-all duration-200"
             title="Sign out"
+            aria-label="Sign out"
           >
             <LogOut className="w-4 h-4 flex-shrink-0" />
             {!collapsed && <span>Sign Out</span>}
@@ -194,6 +196,7 @@ export const DashboardLayout = ({ children }) => {
             <button
               onClick={() => setMobileOpen(true)}
               className="lg:hidden p-2 rounded-lg bg-white/5 text-slate-300 hover:text-white"
+              aria-label="Open mobile navigation menu"
             >
               <Menu className="w-5 h-5" />
             </button>
