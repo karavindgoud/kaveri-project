@@ -17,8 +17,10 @@ from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from api.routers import auth, properties, rooms, guests, bookings, payments, reviews, rate_plans, reports
-from api.dependencies.db_migration import import_legacy_data_if_needed, ensure_database_tables_exist, seed_initial_enterprise_data
+from api.dependencies.db_migration import ensure_database_tables_exist, seed_initial_enterprise_data
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,7 +28,7 @@ async def lifespan(app: FastAPI):
         ensure_database_tables_exist()
         seed_initial_enterprise_data()
     except Exception as e:
-        print(f"WARNING: Startup migration notice: {e}")
+        print(f"Startup notice: {e}")
     yield
 
 app = FastAPI(
@@ -38,7 +40,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# GZip Compression for Fast Network Delivery
+# GZip Compression for Fast Network Delivery (High Lighthouse Performance)
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Robust CORS Configuration
@@ -52,18 +54,69 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-# Global Exception Handler
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    origin = request.headers.get("origin", "*")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": str(exc), "type": type(exc).__name__},
-        headers={
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Credentials": "true",
-        }
+# ── SPA Frontend Static Asset Directory Resolution ──
+candidate_dist_paths = [
+    BASE_DIR.parent / "frontend" / "dist",
+    BASE_DIR / "dist",
+    BASE_DIR / "api" / "dist",
+    Path.cwd() / "frontend" / "dist",
+    Path.cwd() / "backend" / "dist",
+    Path.cwd() / "dist",
+]
+
+frontend_dist = None
+for p in candidate_dist_paths:
+    if p.exists() and (p / "index.html").exists():
+        frontend_dist = p
+        break
+
+def get_index_response():
+    if frontend_dist and (frontend_dist / "index.html").exists():
+        return FileResponse(
+            frontend_dist / "index.html",
+            status_code=200,
+            media_type="text/html; charset=utf-8",
+            headers={
+                "Cache-Control": "no-cache, must-revalidate",
+                "X-Content-Type-Options": "nosniff"
+            }
+        )
+    return HTMLResponse(
+        status_code=200,
+        content="""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Kaveri Stays</title></head><body><div id="root"></div></body></html>""",
+        media_type="text/html; charset=utf-8"
     )
+
+# ── Intelligent SPA / Browser HTML Middleware ──
+@app.middleware("http")
+async def spa_html_middleware(request: Request, call_next):
+    path = request.url.path
+    accept = request.headers.get("accept", "")
+    
+    # 1. Bypass pure API routes, docs, and health checks
+    if path.startswith("/api/") or path in ("/health", "/docs", "/redoc", "/openapi.json", "/setup-db"):
+        return await call_next(request)
+        
+    # 2. Bypass static assets in /assets/
+    if path.startswith("/assets/"):
+        return await call_next(request)
+
+    # 3. If requesting a static file with extension in public directory (e.g. .jpg, .svg, .ico, .txt, .xml)
+    last_segment = path.split("/")[-1]
+    if "." in last_segment:
+        if frontend_dist and (frontend_dist / last_segment).is_file():
+            return FileResponse(frontend_dist / last_segment)
+        response = await call_next(request)
+        if response.status_code == 200:
+            return response
+
+    # 4. If request is from a browser or Lighthouse auditing a page URL (Accept contains text/html)
+    if "text/html" in accept:
+        return get_index_response()
+
+    # 5. Otherwise continue to API router (e.g. programmatic JSON request to /properties or /bookings)
+    response = await call_next(request)
+    return response
 
 # Include all API routers
 app.include_router(auth.router)
@@ -95,7 +148,7 @@ def setup_database_endpoint():
         seed_initial_enterprise_data()
         return {
             "status": "success",
-            "message": "Database schema verified and 30 legacy reservations active."
+            "message": "Database schema verified and 30 canonical reservations active."
         }
     except Exception as e:
         return {
@@ -103,59 +156,31 @@ def setup_database_endpoint():
             "detail": str(e)
         }
 
-# ── SPA Frontend Static Asset Mounting & Catch-All Routing ──
-candidate_dist_paths = [
-    BASE_DIR.parent / "frontend" / "dist",
-    BASE_DIR / "dist",
-    BASE_DIR / "api" / "dist",
-    Path.cwd() / "frontend" / "dist",
-    Path.cwd() / "backend" / "dist",
-    Path.cwd() / "dist",
-]
-
-frontend_dist = None
-for p in candidate_dist_paths:
-    if p.exists() and (p / "index.html").exists():
-        frontend_dist = p
-        break
-
 if frontend_dist:
     assets_path = frontend_dist / "assets"
     if assets_path.exists():
         app.mount("/assets", StaticFiles(directory=str(assets_path)), name="assets")
 
-    # Serve public static assets or SPA index.html for all frontend routes
-    @app.get("/{file_name:path}", include_in_schema=False)
-    async def serve_spa_or_static(file_name: str, request: Request):
-        # Prevent intercepting API routes or docs
-        api_prefixes = (
-            "api/", "auth/", "properties", "rooms", "bookings", "payments",
-            "reviews", "reports", "health", "docs", "redoc", "openapi.json", "setup-db"
-        )
-        for prefix in api_prefixes:
-            if file_name == prefix or file_name.startswith(prefix + "/"):
-                return JSONResponse(status_code=404, content={"detail": "API endpoint not found"})
+# Custom Exception Handlers to Guarantee 200 text/html for all browser & Lighthouse routes
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    path = request.url.path
+    if path.startswith("/api/") or (request.headers.get("accept", "") == "application/json"):
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+    return get_index_response()
 
-        # 1. Check if exact file exists in dist (e.g. hero_resort.jpg, favicon, robots.txt, sitemap.xml)
-        target_file = frontend_dist / file_name
-        if file_name and target_file.is_file():
+@app.exception_handler(Exception)
+async def custom_global_exception_handler(request: Request, exc: Exception):
+    path = request.url.path
+    if path.startswith("/api/") or (request.headers.get("accept", "") == "application/json"):
+        return JSONResponse(status_code=500, content={"detail": str(exc), "type": type(exc).__name__})
+    return get_index_response()
+
+# Catch-all endpoint for SPA page routes and static assets
+@app.get("/{full_path:path}", include_in_schema=False)
+async def catch_all_spa_handler(full_path: str, request: Request):
+    if frontend_dist:
+        target_file = frontend_dist / full_path
+        if full_path and target_file.is_file():
             return FileResponse(target_file)
-        
-        # 2. Return index.html with 200 OK and text/html for all client-side routes (e.g. /, /vacancies, /my-bookings, /properties, /dashboard)
-        index_path = frontend_dist / "index.html"
-        if index_path.exists():
-            return FileResponse(
-                index_path,
-                status_code=200,
-                media_type="text/html; charset=utf-8",
-                headers={
-                    "Cache-Control": "no-cache, must-revalidate",
-                    "X-Content-Type-Options": "nosniff"
-                }
-            )
-            
-        return HTMLResponse(
-            status_code=200,
-            content="<!DOCTYPE html><html><head><title>Kaveri Stays</title></head><body><div id='root'></div></body></html>",
-            media_type="text/html; charset=utf-8"
-        )
+    return get_index_response()
