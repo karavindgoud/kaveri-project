@@ -2,7 +2,9 @@ services:
   - type: web
     name: kaveri-project
     runtime: python
-    buildCommand: "pip install -r requirements.txt"
+    autoDeploy: true
+    branch: main
+    buildCommand: "bash build.sh"
     startCommand: "uvicorn api.main:app --host 0.0.0.0 --port $PORT --app-dir backend"
     envVars:
       - key: PYTHON_VERSION
