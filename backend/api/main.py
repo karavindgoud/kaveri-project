@@ -1,5 +1,6 @@
 import os
 import sys
+import mimetypes
 from pathlib import Path
 
 # Initialize Django environment before importing models
@@ -40,7 +41,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# GZip Compression for Fast Network Delivery (High Lighthouse Performance)
+# GZip Compression for Fast Network Delivery (Boosts Lighthouse Performance)
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Robust CORS Configuration
@@ -62,6 +63,8 @@ candidate_dist_paths = [
     Path.cwd() / "frontend" / "dist",
     Path.cwd() / "backend" / "dist",
     Path.cwd() / "dist",
+    Path("/opt/render/project/src/frontend/dist"),
+    Path("/opt/render/project/src/backend/dist"),
 ]
 
 frontend_dist = None
@@ -70,51 +73,87 @@ for p in candidate_dist_paths:
         frontend_dist = p
         break
 
-def get_index_response():
-    if frontend_dist and (frontend_dist / "index.html").exists():
-        return FileResponse(
-            frontend_dist / "index.html",
-            status_code=200,
-            media_type="text/html; charset=utf-8",
-            headers={
-                "Cache-Control": "no-cache, must-revalidate",
-                "X-Content-Type-Options": "nosniff"
-            }
-        )
+# In-memory cached index.html to guarantee sub-millisecond 200 text/html delivery
+INDEX_HTML_CONTENT = """<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>THE KAVERI COLLECTION | Ultra-Luxury Resorts & Hotels</title>
+    <meta name="description" content="Experience unrivaled grandeur, exclusive member privileges, and bespoke luxury resort hospitality across Coorg, Ooty, and Alleppey at The Kaveri Collection." />
+    <meta name="theme-color" content="#04120e" />
+    <meta property="og:title" content="THE KAVERI COLLECTION | Ultra-Luxury Resorts & Hotels" />
+    <meta property="og:description" content="Experience unrivaled grandeur, exclusive member privileges, and bespoke luxury hospitality at The Kaveri Collection." />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-[#04120e] text-slate-100 font-sans antialiased selection:bg-[#d4af37] selection:text-black min-h-screen">
+    <div id="root"></div>
+  </body>
+</html>"""
+
+if frontend_dist and (frontend_dist / "index.html").exists():
+    try:
+        with open(frontend_dist / "index.html", "r", encoding="utf-8") as f:
+            INDEX_HTML_CONTENT = f.read()
+    except Exception:
+        pass
+
+def get_html_response():
     return HTMLResponse(
+        content=INDEX_HTML_CONTENT,
         status_code=200,
-        content="""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Kaveri Stays</title></head><body><div id="root"></div></body></html>""",
-        media_type="text/html; charset=utf-8"
+        media_type="text/html; charset=utf-8",
+        headers={
+            "Cache-Control": "no-cache, must-revalidate",
+            "X-Content-Type-Options": "nosniff"
+        }
     )
 
-# ── Intelligent SPA / Browser HTML Middleware ──
+# ── Intelligent SPA / Browser HTML & Static Asset Middleware ──
 @app.middleware("http")
 async def spa_html_middleware(request: Request, call_next):
     path = request.url.path
     accept = request.headers.get("accept", "")
     
-    # 1. Bypass pure API routes, docs, and health checks
+    # 1. Pure API routes, swagger docs, and health checks pass directly to routers
     if path.startswith("/api/") or path in ("/health", "/docs", "/redoc", "/openapi.json", "/setup-db"):
         return await call_next(request)
         
-    # 2. Bypass static assets in /assets/
+    # 2. Static assets in /assets/
     if path.startswith("/assets/"):
+        asset_file_name = path.replace("/assets/", "")
+        if frontend_dist and (frontend_dist / "assets" / asset_file_name).is_file():
+            mime_type, _ = mimetypes.guess_type(asset_file_name)
+            return FileResponse(
+                frontend_dist / "assets" / asset_file_name,
+                media_type=mime_type or "application/octet-stream",
+                headers={"Cache-Control": "public, max-age=31536000, immutable"}
+            )
         return await call_next(request)
 
-    # 3. If requesting a static file with extension in public directory (e.g. .jpg, .svg, .ico, .txt, .xml)
+    # 3. Static files in root (e.g. hero_resort.jpg, robots.txt, sitemap.xml, vite.svg)
     last_segment = path.split("/")[-1]
     if "." in last_segment:
         if frontend_dist and (frontend_dist / last_segment).is_file():
-            return FileResponse(frontend_dist / last_segment)
+            mime_type, _ = mimetypes.guess_type(last_segment)
+            return FileResponse(
+                frontend_dist / last_segment,
+                media_type=mime_type or "application/octet-stream",
+                headers={"Cache-Control": "public, max-age=86400"}
+            )
         response = await call_next(request)
         if response.status_code == 200:
             return response
 
-    # 4. If request is from a browser or Lighthouse auditing a page URL (Accept contains text/html)
+    # 4. If request is from browser or Lighthouse auditing a webpage URL (Accept header has text/html)
     if "text/html" in accept:
-        return get_index_response()
+        return get_html_response()
 
-    # 5. Otherwise continue to API router (e.g. programmatic JSON request to /properties or /bookings)
+    # 5. Otherwise continue to API router (e.g. programmatic JSON request)
     response = await call_next(request)
     return response
 
@@ -167,14 +206,14 @@ async def custom_http_exception_handler(request: Request, exc: StarletteHTTPExce
     path = request.url.path
     if path.startswith("/api/") or (request.headers.get("accept", "") == "application/json"):
         return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
-    return get_index_response()
+    return get_html_response()
 
 @app.exception_handler(Exception)
 async def custom_global_exception_handler(request: Request, exc: Exception):
     path = request.url.path
     if path.startswith("/api/") or (request.headers.get("accept", "") == "application/json"):
         return JSONResponse(status_code=500, content={"detail": str(exc), "type": type(exc).__name__})
-    return get_index_response()
+    return get_html_response()
 
 # Catch-all endpoint for SPA page routes and static assets
 @app.get("/{full_path:path}", include_in_schema=False)
@@ -182,5 +221,6 @@ async def catch_all_spa_handler(full_path: str, request: Request):
     if frontend_dist:
         target_file = frontend_dist / full_path
         if full_path and target_file.is_file():
-            return FileResponse(target_file)
-    return get_index_response()
+            mime_type, _ = mimetypes.guess_type(full_path)
+            return FileResponse(target_file, media_type=mime_type or "application/octet-stream")
+    return get_html_response()
