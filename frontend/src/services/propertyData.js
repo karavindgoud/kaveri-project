@@ -6,7 +6,7 @@ export const DEFAULT_PROPERTIES = [
     city: 'Coorg',
     stars: 4,
     total_rooms: 18,
-    image: '/resort_coorg.jpg',
+    image: '/resort_coorg.webp',
     description: 'Secluded riverside sanctuary along the Kaveri river amidst lush rainforests and misty coffee estates with private infinity pool.'
   },
   {
@@ -15,7 +15,7 @@ export const DEFAULT_PROPERTIES = [
     city: 'Ooty',
     stars: 5,
     total_rooms: 14,
-    image: '/resort_ooty.jpg',
+    image: '/resort_ooty.webp',
     description: 'High-altitude luxury chalet perched on panoramic mountain ridges overlooking rolling emerald tea plantations with heated cliffside infinity pool.'
   },
   {
@@ -24,7 +24,7 @@ export const DEFAULT_PROPERTIES = [
     city: 'Alleppey',
     stars: 4,
     total_rooms: 12,
-    image: '/resort_alleppey.jpg',
+    image: '/resort_alleppey.webp',
     description: 'Tranquil waterfront estate along serene Kerala lagoons with private plunge pools, traditional wooden architecture, and sunset houseboat docks.'
   }
 ];
@@ -58,19 +58,19 @@ export const DEFAULT_ROOMS = [
 ];
 
 export const PROPERTY_IMAGES_MAP = {
-  'Kaveri Riverside': '/resort_coorg.jpg',
-  'Kaveri Hilltop': '/resort_ooty.jpg',
-  'Kaveri Backwater': '/resort_alleppey.jpg',
-  'Kaveri Backwaters': '/resort_alleppey.jpg',
+  'Kaveri Riverside': '/resort_coorg.webp',
+  'Kaveri Hilltop': '/resort_ooty.webp',
+  'Kaveri Backwater': '/resort_alleppey.webp',
+  'Kaveri Backwaters': '/resort_alleppey.webp',
 };
 
 export const getPropertyImage = (name, city = '') => {
   const norm = (name || '').toLowerCase();
   const cityNorm = (city || '').toLowerCase();
 
-  if (norm.includes('riverside') || cityNorm.includes('coorg')) return '/resort_coorg.jpg';
-  if (norm.includes('hilltop') || cityNorm.includes('ooty')) return '/resort_ooty.jpg';
-  if (norm.includes('backwater') || cityNorm.includes('alleppey')) return '/resort_alleppey.jpg';
+  if (norm.includes('riverside') || cityNorm.includes('coorg')) return '/resort_coorg.webp';
+  if (norm.includes('hilltop') || cityNorm.includes('ooty')) return '/resort_ooty.webp';
+  if (norm.includes('backwater') || cityNorm.includes('alleppey')) return '/resort_alleppey.webp';
   
-  return '/hero_resort.jpg';
+  return '/hero_resort.webp';
 };
