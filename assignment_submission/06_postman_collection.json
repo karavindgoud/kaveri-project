@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "Kaveri Stays Enterprise API Suite",
-    "_postman_id": "a9d8f3e2-7814-46bb-89c0-kaveristays01",
-    "description": "Comprehensive Postman Test Collection covering all endpoints, RBAC authorization matrix, End-to-End Take-a-Booking lifecycle flow, and Stage 8 Attack Suite.",
+    "_postman_id": "604388f3-c6fd-4546-b382-a0a3d7d60c84",
+    "name": "Kaveri Hotels API \u2014 Stage 6",
+    "description": "Stage 6 collection with resource folders, attacks, and an end-to-end take-a-booking flow. Uses environment variables and collection-level Bearer authorization.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -15,376 +15,923 @@
       }
     ]
   },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "booking_id",
+      "value": ""
+    },
+    {
+      "key": "room_id",
+      "value": ""
+    },
+    {
+      "key": "property_id",
+      "value": "1"
+    },
+    {
+      "key": "payment_id",
+      "value": ""
+    },
+    {
+      "key": "idempotency_key",
+      "value": "stage6-{{$guid}}"
+    }
+  ],
   "item": [
     {
-      "name": "01_Auth",
+      "name": "Authentication",
       "item": [
         {
-          "name": "Login (Auto-captures Token)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "var jsonData = pm.response.json();",
-                  "if (jsonData.access_token) {",
-                  "    pm.environment.set('access_token', jsonData.access_token);",
-                  "    console.log('Access token stored in environment variable.');",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Register",
           "request": {
-            "auth": { "type": "noauth" },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/register",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "login"]
+              "raw": "{\n  \"email\": \"{{new_guest_email}}\",\n  \"password\": \"{{new_guest_password}}\",\n  \"full_name\": \"Postman Guest\",\n  \"phone\": \"9999999999\"\n}"
             }
-          }
-        },
-        {
-          "name": "Get Current User Profile (/me)",
+          },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });"
+                ]
               }
             }
           ],
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/auth/me",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "me"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "02_Properties_and_Rooms",
-      "item": [
-        {
-          "name": "List Properties",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "url": { "raw": "{{base_url}}/api/properties", "host": ["{{base_url}}"], "path": ["api", "properties"] }
-          }
+          "response": []
         },
         {
-          "name": "Check Availability (Query 4.1)",
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "var rooms = pm.response.json();",
-                  "if (rooms && rooms.length > 0) { pm.environment.set('available_room_id', rooms[0].room_id); }"
-                ],
-                "type": "text/javascript"
+                  "const json = pm.response.json();",
+                  "if (json.access_token) pm.environment.set('access_token', json.access_token);",
+                  "if (json.refresh_token) pm.environment.set('refresh_token', json.refresh_token);"
+                ]
               }
             }
           ],
+          "response": []
+        },
+        {
+          "name": "Me",
           "request": {
             "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/rooms/availability?property_id=1&check_in=2026-10-01&check_out=2026-10-05",
-              "host": ["{{base_url}}"],
-              "path": ["api", "rooms", "availability"],
-              "query": [
-                { "key": "property_id", "value": "1" },
-                { "key": "check_in", "value": "2026-10-01" },
-                { "key": "check_out", "value": "2026-10-05" }
-              ]
+            "header": [],
+            "url": "{{base_url}}/auth/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
             }
-          }
+          ],
+          "response": []
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/auth/logout"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
         }
       ]
     },
     {
-      "name": "03_Take_A_Booking_E2E_Flow",
+      "name": "Properties",
       "item": [
         {
-          "name": "Step 1: Check Availability",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Availability check returns 200', function () { pm.response.to.have.status(200); });",
-                  "var list = pm.response.json();",
-                  "pm.environment.set('e2e_room_id', list[0].room_id);"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "List properties",
           "request": {
             "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/rooms/availability?property_id=1&check_in=2026-11-01&check_out=2026-11-04",
-              "host": ["{{base_url}}"],
-              "path": ["api", "rooms", "availability"],
-              "query": [
-                { "key": "property_id", "value": "1" },
-                { "key": "check_in", "value": "2026-11-01" },
-                { "key": "check_out", "value": "2026-11-04" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Step 2: Create Booking and Settle Deposit",
+            "header": [],
+            "url": "{{base_url}}/properties"
+          },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Booking created 201', function () { pm.response.to.have.status(201); });",
-                  "var res = pm.response.json();",
-                  "pm.environment.set('e2e_booking_id', res.booking_id);"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"room_id\": {{e2e_room_id}},\n  \"guest_id\": 1,\n  \"check_in\": \"2026-11-01\",\n  \"check_out\": \"2026-11-04\",\n  \"guest_count\": 2,\n  \"deposit_amount\": 1350.00,\n  \"payment_method\": \"credit_card\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/api/bookings", "host": ["{{base_url}}"], "path": ["api", "bookings"] }
-          }
+          "response": []
         },
         {
-          "name": "Step 3: Check-in Guest (Staff/Manager)",
+          "name": "Get property",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/properties/{{property_id}}"
+          },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 200 or 403 depending on role', function () {",
-                  "    pm.expect([200, 403]).to.include(pm.response.code);",
-                  "});"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ],
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"checked_in\"\n}" },
-            "url": { "raw": "{{base_url}}/api/bookings/{{e2e_booking_id}}", "host": ["{{base_url}}"], "path": ["api", "bookings", "{{e2e_booking_id}}"] }
-          }
-        },
-        {
-          "name": "Step 4: Check-out Guest",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Transition processed', function () {",
-                  "    pm.expect([200, 403, 409]).to.include(pm.response.code);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"checked_out\"\n}" },
-            "url": { "raw": "{{base_url}}/api/bookings/{{e2e_booking_id}}", "host": ["{{base_url}}"], "path": ["api", "bookings", "{{e2e_booking_id}}"] }
-          }
-        },
-        {
-          "name": "Step 5: Submit Post-Stay Review",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Review submission status checked', function () {",
-                  "    pm.expect([201, 409, 403]).to.include(pm.response.code);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"booking_id\": {{e2e_booking_id}},\n  \"rating\": 5,\n  \"comment\": \"Bespoke luxury hospitality and pristine infinity pool views!\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/api/reviews", "host": ["{{base_url}}"], "path": ["api", "reviews"] }
-          }
+          "response": []
         }
       ]
     },
     {
-      "name": "04_Attacks_and_Security_Suite",
+      "name": "Room Types",
       "item": [
         {
-          "name": "Attack 8.1: Guest A requests Guest B booking",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Refused with 403 Forbidden or 404', function () {",
-                  "    pm.expect([403, 404]).to.include(pm.response.code);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "List room types",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url}}/api/bookings/9999", "host": ["{{base_url}}"], "path": ["api", "bookings", "9999"] }
-          }
-        },
-        {
-          "name": "Attack 8.2: Self-register with role owner",
+            "header": [],
+            "url": "{{base_url}}/room-types"
+          },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Registration forces guest role', function () {",
-                  "    if (pm.response.code === 201) {",
-                  "        var res = pm.response.json();",
-                  "        pm.expect(res.role).to.eql('guest');",
-                  "    } else {",
-                  "        pm.expect(pm.response.code).to.be.oneOf([400, 422, 409]);",
-                  "    }",
-                  "});"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ],
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"hacker_admin\",\n  \"email\": \"hacker@evil.com\",\n  \"password\": \"Pwned123!\",\n  \"full_name\": \"Hacker\",\n  \"role\": \"owner\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api", "auth", "register"] }
-          }
+          "response": []
         },
         {
-          "name": "Attack 8.7: Cross-property Ooty manager accessing Coorg",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Cross-property access refused with 403', function () {",
-                  "    if (pm.environment.get('role') === 'manager' && pm.environment.get('property_id') === '2') {",
-                  "        pm.response.to.have.status(403);",
-                  "    }",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Get room type",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url}}/api/reports/revenue?property_id=1", "host": ["{{base_url}}"], "path": ["api", "reports", "revenue"], "query": [{ "key": "property_id", "value": "1" }] }
-          }
-        },
-        {
-          "name": "Attack 8.8: Client-supplied nightly rate in booking",
+            "header": [],
+            "url": "{{base_url}}/room-types/{{room_type_id}}"
+          },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Price injection ignored or refused', function () {",
-                  "    pm.expect([201, 400, 422]).to.include(pm.response.code);",
-                  "});"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"room_id\": 101,\n  \"guest_id\": 1,\n  \"check_in\": \"2026-12-01\",\n  \"check_out\": \"2026-12-05\",\n  \"guest_count\": 2,\n  \"nightly_rate\": 1.00,\n  \"deposit_amount\": 4.00,\n  \"payment_method\": \"upi\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/api/bookings", "host": ["{{base_url}}"], "path": ["api", "bookings"] }
-          }
-        },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Rooms",
+      "item": [
         {
-          "name": "Attack 8.9: Post review on active checked_in stay",
+          "name": "List rooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/rooms"
+          },
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Refused with 409 Conflict', function () {",
-                  "    pm.response.to.have.status(409);",
-                  "});"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
               }
             }
           ],
+          "response": []
+        },
+        {
+          "name": "Get room",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/rooms/{{room_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Availability",
+      "item": [
+        {
+          "name": "Check availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/availability?check_in=2027-11-01&check_out=2027-11-04&guest_count=2"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "const rooms = Array.isArray(data) ? data : (data.items || []);",
+                  "if (rooms.length) { pm.environment.set('room_id', String(rooms[0].room_id)); }"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "List bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/bookings?limit=10&offset=0"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Create booking",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bookings",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"booking_id\": 1001,\n  \"rating\": 5,\n  \"comment\": \"Premature review\"\n}"
-            },
-            "url": { "raw": "{{base_url}}/api/reviews", "host": ["{{base_url}}"], "path": ["api", "reviews"] }
-          }
+              "raw": "{\n  \"room_id\": \"{{room_id}}\",\n  \"check_in\": \"2027-11-01\",\n  \"check_out\": \"2027-11-04\",\n  \"guest_count\": 2,\n  \"payment_method\": \"upi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "if (data.booking_id) pm.environment.set('booking_id', String(data.booking_id));",
+                  "if (data.room_id) pm.environment.set('room_id', String(data.room_id));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get booking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/bookings/{{booking_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Filter confirmed bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/bookings?status_filter=confirmed&limit=10&offset=0"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "List booking payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/bookings/{{booking_id}}/payments"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Record payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bookings/{{booking_id}}/payments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"1200.00\",\n  \"method\": \"upi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "if (data.payment_id) pm.environment.set('payment_id', String(data.payment_id));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"booking_id\": \"{{booking_id}}\",\n  \"rating\": 5,\n  \"comment\": \"Excellent stay.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Property reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/reviews/property/{{property_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "attacks",
+      "item": [
+        {
+          "name": "Attack \u2014 missing token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/auth/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Attack \u2014 invalid bearer token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid.invalid.invalid"
+              }
+            ],
+            "url": "{{base_url}}/auth/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Attack \u2014 invalid dates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/availability?check_in=2027-11-05&check_out=2027-11-01&guest_count=2"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Attack \u2014 zero guests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/availability?check_in=2027-11-01&check_out=2027-11-04&guest_count=0"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Attack \u2014 over-capacity booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{room_id}}\",\n  \"check_in\": \"2027-12-01\",\n  \"check_out\": \"2027-12-04\",\n  \"guest_count\": 999,\n  \"payment_method\": \"upi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Attack \u2014 invalid booking dates",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{room_id}}\",\n  \"check_in\": \"2027-12-04\",\n  \"check_out\": \"2027-12-01\",\n  \"guest_count\": 2,\n  \"payment_method\": \"upi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Attack \u2014 invalid booking status filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/bookings?status_filter=not_a_status"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Attack \u2014 negative offset",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/bookings?limit=10&offset=-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "take a booking",
+      "item": [
+        {
+          "name": "1. Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json.access_token) pm.environment.set('access_token', json.access_token);",
+                  "if (json.refresh_token) pm.environment.set('refresh_token', json.refresh_token);"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "2. Check availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/availability?check_in=2027-11-01&check_out=2027-11-04&guest_count=2"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "const rooms = Array.isArray(data) ? data : (data.items || []);",
+                  "if (rooms.length) { pm.environment.set('room_id', String(rooms[0].room_id)); }"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "3. Create booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": \"{{room_id}}\",\n  \"check_in\": \"2027-11-01\",\n  \"check_out\": \"2027-11-04\",\n  \"guest_count\": 2,\n  \"payment_method\": \"upi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "if (data.booking_id) pm.environment.set('booking_id', String(data.booking_id));",
+                  "if (data.room_id) pm.environment.set('room_id', String(data.room_id));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "4. Pay deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotency_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bookings/{{booking_id}}/payments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"1200.00\",\n  \"method\": \"upi\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "if (data.payment_id) pm.environment.set('payment_id', String(data.payment_id));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "5. Check in",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/bookings/{{booking_id}}/check-in"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "6. Check out",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/bookings/{{booking_id}}/check-out"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "7. Leave review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bookings/{{booking_id}}/review",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent stay.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            }
+          ],
+          "response": []
         }
       ]
     }
