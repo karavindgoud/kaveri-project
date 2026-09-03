@@ -86,9 +86,14 @@ INDEX_HTML_CONTENT = """<!doctype html>
     <meta property="og:title" content="THE KAVERI COLLECTION | Ultra-Luxury Resorts & Hotels" />
     <meta property="og:description" content="Experience unrivaled grandeur, exclusive member privileges, and bespoke luxury hospitality at The Kaveri Collection." />
     <meta property="og:type" content="website" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="canonical" href="https://kaveri-project.onrender.com" />
+    <link rel="preload" as="image" href="/hero_resort.webp" type="image/webp" fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+    </noscript>
   </head>
   <body class="bg-[#04120e] text-slate-100 font-sans antialiased selection:bg-[#d4af37] selection:text-black min-h-screen">
     <div id="root"></div>
@@ -109,7 +114,10 @@ def get_html_response():
         media_type="text/html; charset=utf-8",
         headers={
             "Cache-Control": "no-cache, must-revalidate",
-            "X-Content-Type-Options": "nosniff"
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "SAMEORIGIN",
+            "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
         }
     )
 
@@ -135,7 +143,7 @@ async def spa_html_middleware(request: Request, call_next):
             )
         return await call_next(request)
 
-    # 3. Static files in root (e.g. hero_resort.jpg, robots.txt, sitemap.xml, vite.svg)
+    # 3. Static files in root (e.g. hero_resort.webp, resort_coorg.webp, robots.txt, sitemap.xml, vite.svg)
     last_segment = path.split("/")[-1]
     if "." in last_segment:
         if frontend_dist and (frontend_dist / last_segment).is_file():
@@ -143,7 +151,7 @@ async def spa_html_middleware(request: Request, call_next):
             return FileResponse(
                 frontend_dist / last_segment,
                 media_type=mime_type or "application/octet-stream",
-                headers={"Cache-Control": "public, max-age=86400"}
+                headers={"Cache-Control": "public, max-age=31536000, immutable"}
             )
         response = await call_next(request)
         if response.status_code == 200:

@@ -63,13 +63,16 @@ export const Home = () => {
       <main>
         {/* ── HERO SECTION ── */}
         <section className="relative min-h-[640px] lg:min-h-[720px] flex items-center justify-center p-6 lg:p-12 overflow-hidden">
-          {/* Background Visual WebP */}
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 scale-105"
-            style={{
-              backgroundImage: `url('/hero_resort.webp')`,
-              backgroundPosition: 'center 35%',
-            }}
+          {/* Background Visual WebP with fetchpriority="high" for Instant LCP */}
+          <img
+            src="/hero_resort.webp"
+            alt="The Kaveri Collection Ultra-Luxury Sanctuary"
+            fetchpriority="high"
+            loading="eager"
+            decoding="async"
+            width="1280"
+            height="720"
+            className="absolute inset-0 w-full h-full object-cover object-[center_35%] transition-transform duration-1000 scale-105"
           />
           
           {/* Gradients */}
