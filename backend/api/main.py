@@ -25,11 +25,16 @@ from api.dependencies.db_migration import ensure_database_tables_exist, seed_ini
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        ensure_database_tables_exist()
-        seed_initial_enterprise_data()
-    except Exception as e:
-        print(f"Startup notice: {e}")
+    import asyncio
+    async def async_init_db():
+        try:
+            await asyncio.to_thread(ensure_database_tables_exist)
+            await asyncio.to_thread(seed_initial_enterprise_data)
+            print("Kaveri Stays Database verified and online.")
+        except Exception as e:
+            print(f"Startup background notice: {e}")
+
+    asyncio.create_task(async_init_db())
     yield
 
 app = FastAPI(

@@ -63,7 +63,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
-DB_ENGINE = os.environ.get('DB_ENGINE', 'postgresql')
+DB_ENGINE = os.environ.get('DB_ENGINE', '').lower()
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
@@ -76,8 +76,9 @@ if DATABASE_URL:
                 conn_health_checks=True,
             )
         }
+        # Add connection timeout
+        DATABASES['default'].setdefault('OPTIONS', {})['connect_timeout'] = 3
     except Exception:
-        # Fallback manual parsing if dj_database_url is unavailable
         from urllib.parse import urlparse
         url = urlparse(DATABASE_URL)
         DATABASES = {
@@ -88,9 +89,12 @@ if DATABASE_URL:
                 'PASSWORD': url.password,
                 'HOST': url.hostname,
                 'PORT': url.port or 5432,
+                'OPTIONS': {
+                    'connect_timeout': 3,
+                }
             }
         }
-elif DB_ENGINE == 'sqlite':
+elif DB_ENGINE == 'sqlite' or (not os.environ.get('DB_HOST') and not os.environ.get('DB_NAME')):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -106,6 +110,9 @@ else:
             'PASSWORD': os.environ.get('DB_PASSWORD', 'Aravind@123'),
             'HOST': os.environ.get('DB_HOST', 'localhost'),
             'PORT': os.environ.get('DB_PORT', '5432'),
+            'OPTIONS': {
+                'connect_timeout': 3,
+            }
         }
     }
 
