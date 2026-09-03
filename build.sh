@@ -7,6 +7,11 @@ echo "Starting build process for Kaveri Stays..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
+# Run database migrations if manage.py is present
+if [ -f "manage.py" ]; then
+  python manage.py migrate --no-input || true
+fi
+
 # Build frontend if Node/npm is present
 if command -v npm &> /dev/null; then
   echo "Building frontend bundle with Vite..."
